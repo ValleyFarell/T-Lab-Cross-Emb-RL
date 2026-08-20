@@ -31,20 +31,14 @@ def _get_maze_spec(env):
 
 def _cell_center_to_world(row, col, maze_shape, maze_unit):
     """
-    Convert a discrete maze cell index (row, col) into MuJoCo world coordinates.
+    Convert OGBench maze_map indices to MuJoCo world coordinates.
 
-    Empirically for OGBench medium AntMaze:
-    - free cells are the interior cells: rows 1..H-2, cols 1..W-2
-    - bottom-left free cell center is approximately (0, 0)
-    - moving one free cell to the right/up adds +maze_unit in x/y
-
-    Therefore:
-        x_center = (col - 1) * maze_unit
-        y_center = ((H - 2) - row) * maze_unit
+    maze_map row index already follows the same vertical orientation
+    as the rendered world maze.
     """
-    height, _ = maze_shape
     x_center = (col - 1) * maze_unit
-    y_center = ((height - 2) - row) * maze_unit
+    y_center = (row - 1) * maze_unit
+
     return x_center, y_center
 
 
