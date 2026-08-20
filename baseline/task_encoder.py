@@ -66,7 +66,10 @@ class TaskEncoder:
         * ``agent.infer_latent`` is used unchanged.
         """
 
-        self.env.reset(options={"task_id": int(task_id)})
+        self.env.reset(
+            seed=0,
+            options={"task_id": int(task_id)}
+        )
         relabeled = relabel_dataset(
             self.env_name,
             self.env,

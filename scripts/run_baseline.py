@@ -30,7 +30,11 @@ def parse_args():
         default=Path("checkpoints/antmaze-medium-navigate-v0"),
     )
     parser.add_argument("--task-id", type=int, default=1)
-    parser.add_argument("--environment-seed", type=int, default=None)
+    parser.add_argument(
+        "--environment-seed",
+        type=int,
+        default=0,
+    )
     parser.add_argument("--controller-seed", type=int, default=0)
     parser.add_argument("--temperature", type=float, default=0.0)
 
@@ -71,13 +75,20 @@ def main():
     config, saved_flags = load_checkpoint_config(args.checkpoint)
     env_name = saved_flags["env_name"]
 
-    env, train_dataset, val_dataset = make_env_and_datasets(
+    eval_env, train_dataset, val_dataset = make_env_and_datasets(
         env_name,
         frame_stack=config["frame_stack"],
         add_info=True,
     )
 
-    env.unwrapped._add_noise_to_goal = False
+    latent_env, _, _ = make_env_and_datasets(
+        env_name,
+        frame_stack=config["frame_stack"],
+        add_info=True,
+    )
+
+    eval_env.unwrapped._add_noise_to_goal = False
+    latent_env.unwrapped._add_noise_to_goal = False
 
     train_dataset = Dataset.create(**train_dataset)
 
@@ -111,7 +122,7 @@ def main():
 
     task_encoder = TaskEncoder(
         frozen_fb,
-        env,
+        latent_env,
         zero_shot_dataset,
         env_name=env_name,
     )
@@ -119,13 +130,17 @@ def main():
     task = task_encoder.encode_standard_task(
         args.task_id,
     )
-
+    print(
+        "latent checksum:",
+        np.sum(task.latent),
+        np.linalg.norm(task.latent)
+    )
     controller = BaselineController(
         frozen_fb,
     )
 
     runner = EpisodeRunner(
-        env,
+        eval_env,
         frozen_fb,
         controller,
         eval_temperature=args.temperature,
@@ -180,7 +195,7 @@ def main():
     save_episode_result(
         result,
         run_dir,
-        env,
+        eval_env,
     )
 
     print(f"environment: {env_name}")
