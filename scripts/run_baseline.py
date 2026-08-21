@@ -14,6 +14,7 @@ np.in1d = np.isin
 from baseline.frozen_fb import FrozenFB, load_checkpoint_config
 from baseline.task_encoder import TaskEncoder
 from controllers.baseline import BaselineController
+from controllers.direct_goal import DirectGoalController
 from evaluation.runner import EpisodeRunner
 from evaluation.save_episode import save_episode_result
 from evaluation.scenarios import Scenario, xy_to_free_grid_cell
@@ -56,6 +57,12 @@ def parse_args():
     )
     parser.add_argument("--controller-seed", type=int, default=0)
     parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument(
+        "--controller",
+        choices=("baseline", "direct"),
+        default="baseline",
+        help="baseline uses high_actor; direct sends the task latent to low_actor.",
+    )
 
     parser.add_argument(
         "--results-dir",
@@ -170,7 +177,7 @@ def main():
             environment_seed=args.environment_seed,
             controller_seed=args.controller_seed,
         )
-        experiment_name = f"baseline_task_{args.task_id}"
+        scenario_name = f"task_{args.task_id}"
     else:
         start_ij = xy_to_free_grid_cell(
             eval_env,
@@ -184,6 +191,14 @@ def main():
         )
         task = task_encoder.encode_custom_task(start_ij, goal_ij)
 
+        requested_goal_xy = np.asarray(args.goal_xy, dtype=np.float64)
+        if not np.allclose(task.goal_xy, requested_goal_xy, atol=1e-8, rtol=0.0):
+            raise RuntimeError(
+                "Custom task latent was encoded for a different goal: "
+                f"requested={requested_goal_xy.tolist()}, "
+                f"latent_goal={task.goal_xy.tolist()}."
+            )
+
         start_label = "_".join(format_coordinate(v) for v in args.start_xy)
         goal_label = "_".join(format_coordinate(v) for v in args.goal_xy)
         scenario_id = f"custom-{start_label}-to-{goal_label}"
@@ -195,15 +210,20 @@ def main():
             start_ij=start_ij,
             goal_ij=goal_ij,
         )
-        experiment_name = f"baseline_{scenario_id}"
+        scenario_name = scenario_id
     print(
         "latent checksum:",
         np.sum(task.latent),
         np.linalg.norm(task.latent)
     )
-    controller = BaselineController(
-        frozen_fb,
-    )
+    if args.controller == "baseline":
+        controller = BaselineController(frozen_fb)
+        controller_slug = "baseline"
+    else:
+        controller = DirectGoalController(frozen_fb)
+        controller_slug = "direct_goal"
+
+    experiment_name = f"{controller_slug}_{scenario_name}"
 
     runner = EpisodeRunner(
         eval_env,
@@ -216,6 +236,13 @@ def main():
         scenario,
         task.latent,
     )
+
+    if not np.allclose(task.goal_xy, result.goal_xy, atol=1e-8, rtol=0.0):
+        raise RuntimeError(
+            "Task-latent goal and rollout goal differ: "
+            f"latent_goal={task.goal_xy.tolist()}, "
+            f"runner_goal={result.goal_xy.tolist()}."
+        )
 
     experiment_dir = (
         args.results_dir
@@ -231,6 +258,7 @@ def main():
         {
             "environment": env_name,
             "checkpoint": str(args.checkpoint),
+            "controller": controller.method_name,
             "scenario_id": scenario.scenario_id,
             "task_id": scenario.task_id,
             "start_ij": scenario.start_ij,
@@ -243,6 +271,8 @@ def main():
             "latent_dim": frozen_fb.latent_dim,
             "N_g": task.num_positive,
             "N_samples": task.num_samples,
+            "latent_checksum": float(np.sum(task.latent)),
+            "latent_norm": float(np.linalg.norm(task.latent)),
         },
     )
 
@@ -268,12 +298,16 @@ def main():
     )
 
     print(f"environment: {env_name}")
+    print(f"controller: {controller.method_name}")
     print(f"scenario_id: {scenario.scenario_id}")
     print(f"task_id: {scenario.task_id if scenario.task_id is not None else 'custom'}")
     if scenario.is_custom:
         print(f"start_xy_nominal: {list(args.start_xy)}")
     print(f"N_g: {task.num_positive}/{task.num_samples}")
-    print(f"goal_xy: {np.asarray(task.goal_xy).tolist()}")
+    print(f"latent_norm: {float(np.linalg.norm(task.latent)):.6f}")
+    print(f"task_goal_xy: {np.asarray(task.goal_xy).tolist()}")
+    print(f"runner_goal_xy: {np.asarray(result.goal_xy).tolist()}")
+    print(f"actual_start_xy: {np.asarray(result.start_xy).tolist()}")
     print(f"success: {result.success}")
     print(f"steps: {result.steps}")
     print(f"path_length: {result.path_length:.6f}")

@@ -229,6 +229,62 @@ foreach ($seed in 0..9) {
 следует сообщать на официальных OGBench tasks. Список дополнительных сценариев
 фиксируется до сравнения методов, иначе возникает риск cherry-picking.
 
+## Диагностика high actor: baseline против direct goal
+
+Режим `baseline` использует полный путь:
+
+```text
+task latent -> high_actor -> intention -> low_actor
+```
+
+Режим `direct` обходит high actor:
+
+```text
+normalize(task latent) -> low_actor
+```
+
+Это диагностический flat-FB контроллер, а не новый proposed method. Он помогает
+установить, какой компонент создаёт длинные петли.
+
+Один baseline-запуск:
+
+```powershell
+python -m scripts.run_baseline `
+  --controller baseline `
+  --start-xy 0 0 `
+  --goal-xy 4 4 `
+  --environment-seed 0 `
+  --controller-seed 0 `
+  --temperature 0 `
+  --results-dir results_diagnostic_baseline
+```
+
+Тот же сценарий без high actor:
+
+```powershell
+python -m scripts.run_baseline `
+  --controller direct `
+  --start-xy 0 0 `
+  --goal-xy 4 4 `
+  --environment-seed 0 `
+  --controller-seed 0 `
+  --temperature 0 `
+  --results-dir results_diagnostic_direct
+```
+
+Для обоих запусков код проверяет:
+
+```text
+requested goal == task-latent goal == runner goal
+```
+
+В консоль выводятся `N_g`, `latent_norm`, `task_goal_xy`, `runner_goal_xy` и
+`actual_start_xy`.
+
+Для paired-диагностики используйте одинаковый заранее выбранный набор seeds, а
+затем `scripts.paired_analysis`. Разности в отчёте всегда считаются как
+`direct - baseline`.
+
 ## Случайность и воспроизводимость
 
 Используются два независимых seed:
@@ -412,4 +468,3 @@ low-level policy, завершение эпизода и логирование.
 - Park et al., *OGBench: Benchmarking Offline Goal-Conditioned RL*.
 - [OGBench repository](https://github.com/seohongpark/ogbench)
 - [Switching Successor Measures repository](https://github.com/stestoKTH/switching-successor-measures)
-

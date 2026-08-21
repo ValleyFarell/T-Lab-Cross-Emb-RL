@@ -20,8 +20,8 @@ Thumbs.db
 results/
 logs/
 wandb/
-results_check/
-results_clean/
+results*
+
 
 # Checkpoints
 *.pt
