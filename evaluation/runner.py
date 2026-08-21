@@ -1,8 +1,7 @@
-
 """Deterministic episode runner.
 
 This version fixes evaluation reproducibility by:
-- explicitly seeding Python and NumPy RNG before environment reset;
+- explicitly seeding Python, NumPy, environment, and action-space RNGs;
 - recording reset state checksums;
 - keeping JAX controller RNG isolated from environment RNG;
 - making evaluation randomness controlled only by Scenario seeds.
@@ -27,10 +26,11 @@ from .scenarios import Scenario
 class EpisodeResult:
     scenario_id: str
     method: str
-    task_id: int
+    task_id: int | None
     environment_seed: int | None
     controller_seed: int
-    temperature: float
+    start_ij: tuple[int, int] | None
+    goal_ij: tuple[int, int] | None
     success: bool
     steps: int
     duration: float
@@ -67,11 +67,12 @@ class EpisodeRunner:
             seed = int(scenario.environment_seed)
             random.seed(seed)
             np.random.seed(seed)
+            action_space = getattr(self.env, "action_space", None)
+            if action_space is not None and hasattr(action_space, "seed"):
+                action_space.seed(seed)
 
         reset_kwargs: dict[str, Any] = {
-            "options": {
-                "task_id": int(scenario.task_id)
-            }
+            "options": scenario.reset_options()
         }
 
         if scenario.environment_seed is not None:
@@ -198,7 +199,8 @@ class EpisodeRunner:
             task_id=scenario.task_id,
             environment_seed=scenario.environment_seed,
             controller_seed=scenario.controller_seed,
-            temperature=self.eval_temperature,
+            start_ij=scenario.start_ij,
+            goal_ij=scenario.goal_ij,
             success=bool(final_info.get("success", False)),
             steps=len(actions),
             duration=duration,

@@ -1,0 +1,23 @@
+{
+  "scenario_id": "custom-0_0-to-4_4",
+  "task_id": null,
+  "start_ij": [
+    1,
+    1
+  ],
+  "goal_ij": [
+    2,
+    2
+  ],
+  "nominal_start_xy": [
+    0.0,
+    0.0
+  ],
+  "goal_xy": [
+    4.0,
+    4.0
+  ],
+  "environment_seed": 0,
+  "controller_seed": 0,
+  "temperature": 0.0
+}

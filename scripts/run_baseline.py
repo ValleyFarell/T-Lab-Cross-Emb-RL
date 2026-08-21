@@ -16,7 +16,7 @@ from baseline.task_encoder import TaskEncoder
 from controllers.baseline import BaselineController
 from evaluation.runner import EpisodeRunner
 from evaluation.save_episode import save_episode_result
-from evaluation.scenarios import Scenario
+from evaluation.scenarios import Scenario, xy_to_free_grid_cell
 from utils.datasets import Dataset
 from utils.env_utils import make_env_and_datasets
 
@@ -29,7 +29,26 @@ def parse_args():
         type=Path,
         default=Path("checkpoints/antmaze-medium-navigate-v0"),
     )
-    parser.add_argument("--task-id", type=int, default=1)
+    parser.add_argument(
+        "--task-id",
+        type=int,
+        default=None,
+        help="Official OGBench task id (default: 1 unless custom coordinates are used).",
+    )
+    parser.add_argument(
+        "--start-xy",
+        nargs=2,
+        type=float,
+        metavar=("X", "Y"),
+        help="Nominal start at the center of a free maze cell.",
+    )
+    parser.add_argument(
+        "--goal-xy",
+        nargs=2,
+        type=float,
+        metavar=("X", "Y"),
+        help="Goal at the center of a free maze cell.",
+    )
     parser.add_argument(
         "--environment-seed",
         type=int,
@@ -44,7 +63,23 @@ def parse_args():
         default=Path("results"),
     )
 
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    has_start = args.start_xy is not None
+    has_goal = args.goal_xy is not None
+    if has_start != has_goal:
+        parser.error("--start-xy and --goal-xy must be provided together.")
+    if has_start and args.task_id is not None:
+        parser.error("--task-id cannot be combined with custom coordinates.")
+    if not has_start and args.task_id is None:
+        args.task_id = 1
+
+    return args
+
+
+def format_coordinate(value: float) -> str:
+    text = f"{value:g}"
+    return text.replace("-", "m").replace(".", "p")
 
 
 def create_run_dir(base_dir: Path):
@@ -127,9 +162,40 @@ def main():
         env_name=env_name,
     )
 
-    task = task_encoder.encode_standard_task(
-        args.task_id,
-    )
+    if args.start_xy is None:
+        task = task_encoder.encode_standard_task(args.task_id)
+        scenario = Scenario(
+            scenario_id=f"ogbench-task-{args.task_id}",
+            task_id=args.task_id,
+            environment_seed=args.environment_seed,
+            controller_seed=args.controller_seed,
+        )
+        experiment_name = f"baseline_task_{args.task_id}"
+    else:
+        start_ij = xy_to_free_grid_cell(
+            eval_env,
+            args.start_xy,
+            name="start_xy",
+        )
+        goal_ij = xy_to_free_grid_cell(
+            eval_env,
+            args.goal_xy,
+            name="goal_xy",
+        )
+        task = task_encoder.encode_custom_task(start_ij, goal_ij)
+
+        start_label = "_".join(format_coordinate(v) for v in args.start_xy)
+        goal_label = "_".join(format_coordinate(v) for v in args.goal_xy)
+        scenario_id = f"custom-{start_label}-to-{goal_label}"
+        scenario = Scenario(
+            scenario_id=scenario_id,
+            task_id=None,
+            environment_seed=args.environment_seed,
+            controller_seed=args.controller_seed,
+            start_ij=start_ij,
+            goal_ij=goal_ij,
+        )
+        experiment_name = f"baseline_{scenario_id}"
     print(
         "latent checksum:",
         np.sum(task.latent),
@@ -146,17 +212,6 @@ def main():
         eval_temperature=args.temperature,
     )
 
-    scenario = Scenario(
-        scenario_id=(
-            f"ogbench-task-{args.task_id}"
-            f"-env-{args.environment_seed}"
-            f"-ctrl-{args.controller_seed}"
-        ),
-        task_id=args.task_id,
-        environment_seed=args.environment_seed,
-        controller_seed=args.controller_seed,
-    )
-
     result = runner.run(
         scenario,
         task.latent,
@@ -164,7 +219,7 @@ def main():
 
     experiment_dir = (
         args.results_dir
-        / f"baseline_task_{args.task_id}"
+        / experiment_name
     )
 
     run_dir = create_run_dir(
@@ -176,9 +231,15 @@ def main():
         {
             "environment": env_name,
             "checkpoint": str(args.checkpoint),
-            "method": controller.method_name,
-            "task_id": args.task_id,
+            "scenario_id": scenario.scenario_id,
+            "task_id": scenario.task_id,
+            "start_ij": scenario.start_ij,
+            "goal_ij": scenario.goal_ij,
+            "start_xy": args.start_xy,
+            "goal_xy": np.asarray(task.goal_xy).tolist(),
             "temperature": args.temperature,
+            "environment_seed": args.environment_seed,
+            "controller_seed": args.controller_seed,
             "latent_dim": frozen_fb.latent_dim,
             "N_g": task.num_positive,
             "N_samples": task.num_samples,
@@ -190,8 +251,13 @@ def main():
         {
             "scenario_id": scenario.scenario_id,
             "task_id": scenario.task_id,
+            "start_ij": scenario.start_ij,
+            "goal_ij": scenario.goal_ij,
+            "nominal_start_xy": args.start_xy,
+            "goal_xy": np.asarray(task.goal_xy).tolist(),
             "environment_seed": scenario.environment_seed,
             "controller_seed": scenario.controller_seed,
+            "temperature": args.temperature,
         },
     )
 
@@ -202,7 +268,10 @@ def main():
     )
 
     print(f"environment: {env_name}")
-    print(f"task_id: {args.task_id}")
+    print(f"scenario_id: {scenario.scenario_id}")
+    print(f"task_id: {scenario.task_id if scenario.task_id is not None else 'custom'}")
+    if scenario.is_custom:
+        print(f"start_xy_nominal: {list(args.start_xy)}")
     print(f"N_g: {task.num_positive}/{task.num_samples}")
     print(f"goal_xy: {np.asarray(task.goal_xy).tolist()}")
     print(f"success: {result.success}")

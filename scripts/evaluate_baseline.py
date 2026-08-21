@@ -49,6 +49,12 @@ def parse_args():
         default=Path("results/evaluation_commands.json"),
     )
 
+    parser.add_argument(
+        "--results-dir",
+        type=Path,
+        default=Path("results"),
+    )
+
     return parser.parse_args()
 
 
@@ -71,6 +77,8 @@ def main():
                 str(args.controller_seed),
                 "--temperature",
                 str(args.temperature),
+                "--results-dir",
+                str(args.results_dir),
             ]
 
             print("\nRunning:")
@@ -87,6 +95,7 @@ def main():
                     "environment_seed": env_seed,
                     "controller_seed": args.controller_seed,
                     "temperature": args.temperature,
+                    "results_dir": str(args.results_dir),
                 }
             )
 

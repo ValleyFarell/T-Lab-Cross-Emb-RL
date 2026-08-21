@@ -20,7 +20,7 @@ class UnsupportedGoalError(RuntimeError):
 
 @dataclass(frozen=True)
 class TaskEncoding:
-    task_id: int
+    task_id: int | None
     latent: np.ndarray
     goal_xy: np.ndarray
     num_positive: int
@@ -66,10 +66,50 @@ class TaskEncoder:
         * ``agent.infer_latent`` is used unchanged.
         """
 
+        self._seed_action_space(0)
+        self.env.reset(seed=0, options={"task_id": int(task_id)})
+        return self._encode_current_goal(
+            task_id=int(task_id),
+            require_support=require_support,
+        )
+
+    def encode_custom_task(
+        self,
+        start_ij: tuple[int, int],
+        goal_ij: tuple[int, int],
+        *,
+        require_support: bool = True,
+    ) -> TaskEncoding:
+        """Infer a task latent for a validated custom maze goal."""
+
+        self._seed_action_space(0)
         self.env.reset(
             seed=0,
-            options={"task_id": int(task_id)}
+            options={
+                "task_info": {
+                    "init_ij": tuple(start_ij),
+                    "goal_ij": tuple(goal_ij),
+                }
+            },
         )
+        return self._encode_current_goal(
+            task_id=None,
+            require_support=require_support,
+        )
+
+    def _seed_action_space(self, seed: int) -> None:
+        action_space = getattr(self.env, "action_space", None)
+        if action_space is not None and hasattr(action_space, "seed"):
+            action_space.seed(seed)
+
+    def _encode_current_goal(
+        self,
+        *,
+        task_id: int | None,
+        require_support: bool,
+    ) -> TaskEncoding:
+        """Relabel the fixed inference batch for the environment's current goal."""
+
         relabeled = relabel_dataset(
             self.env_name,
             self.env,
@@ -97,15 +137,16 @@ class TaskEncoder:
         goal_xy = np.asarray(self.env.unwrapped.cur_goal_xy, dtype=np.float64).copy()
 
         result = TaskEncoding(
-            task_id=int(task_id),
+            task_id=task_id,
             latent=latent,
             goal_xy=goal_xy,
             num_positive=num_positive,
             num_samples=num_samples,
         )
         if require_support and not result.supported:
+            task_name = f"Task {task_id}" if task_id is not None else "Custom goal"
             raise UnsupportedGoalError(
-                f"Task {task_id} has N_g=0 in the exact {num_samples}-state "
+                f"{task_name} has N_g=0 in the exact {num_samples}-state "
                 "zero-shot inference batch. The official code would silently "
                 "produce a zero task latent; this runtime refuses to treat it "
                 "as a normal supported goal."

@@ -1,0 +1,27 @@
+{
+  "scenario_id": "custom-16_4-to-20_0",
+  "method": "fbpiswitch_baseline",
+  "task_id": null,
+  "environment_seed": 0,
+  "controller_seed": 1,
+  "start_ij": [
+    2,
+    5
+  ],
+  "goal_ij": [
+    1,
+    6
+  ],
+  "start_xy": [
+    16.097627007854648,
+    4.430378732744839
+  ],
+  "goal_xy": [
+    20.0,
+    0.0
+  ],
+  "success": false,
+  "steps": 1000,
+  "path_length": 70.8409095921194,
+  "final_distance": 4.947660763016846
+}
