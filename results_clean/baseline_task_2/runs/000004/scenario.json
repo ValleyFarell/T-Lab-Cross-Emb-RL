@@ -1,0 +1,6 @@
+{
+  "scenario_id": "ogbench-task-2-env-3-ctrl-0",
+  "task_id": 2,
+  "environment_seed": 3,
+  "controller_seed": 0
+}

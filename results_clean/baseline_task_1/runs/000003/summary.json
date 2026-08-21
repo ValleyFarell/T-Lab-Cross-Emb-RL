@@ -1,0 +1,20 @@
+{
+  "scenario_id": "ogbench-task-1-env-2-ctrl-0",
+  "method": "fbpiswitch_baseline",
+  "task_id": 1,
+  "environment_seed": 2,
+  "controller_seed": 0,
+  "temperature": 0.0,
+  "start_xy": [
+    -0.12801019571599248,
+    -0.9481475363442173
+  ],
+  "goal_xy": [
+    20.0,
+    20.0
+  ],
+  "success": true,
+  "steps": 605,
+  "path_length": 81.08837338147495,
+  "final_distance": 0.47922915190265625
+}

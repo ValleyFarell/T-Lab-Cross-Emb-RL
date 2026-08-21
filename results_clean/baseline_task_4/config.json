@@ -1,0 +1,10 @@
+{
+  "environment": "ogbench-antmaze-medium-navigate-v0",
+  "checkpoint": "checkpoints\\antmaze-medium-navigate-v0",
+  "method": "fbpiswitch_baseline",
+  "task_id": 4,
+  "temperature": 0.0,
+  "latent_dim": 128,
+  "N_g": 485,
+  "N_samples": 100000
+}

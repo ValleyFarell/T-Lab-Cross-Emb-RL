@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import numpy as np
+
 from evaluation.logger import EpisodeLogger
 from evaluation.visualization import plot_path
 
@@ -32,6 +34,12 @@ def save_episode_result(result, output_dir, env):
         {
             "scenario_id": result.scenario_id,
             "method": result.method,
+            "task_id": result.task_id,
+            "environment_seed": result.environment_seed,
+            "controller_seed": result.controller_seed,
+            "temperature": result.temperature,
+            "start_xy": np.asarray(result.start_xy).tolist(),
+            "goal_xy": np.asarray(result.goal_xy).tolist(),
             "success": result.success,
             "steps": result.steps,
             "path_length": result.path_length,

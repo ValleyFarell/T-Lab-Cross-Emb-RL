@@ -147,7 +147,11 @@ def main():
     )
 
     scenario = Scenario(
-        scenario_id=f"ogbench-task-{args.task_id}",
+        scenario_id=(
+            f"ogbench-task-{args.task_id}"
+            f"-env-{args.environment_seed}"
+            f"-ctrl-{args.controller_seed}"
+        ),
         task_id=args.task_id,
         environment_seed=args.environment_seed,
         controller_seed=args.controller_seed,
@@ -172,10 +176,9 @@ def main():
         {
             "environment": env_name,
             "checkpoint": str(args.checkpoint),
+            "method": controller.method_name,
             "task_id": args.task_id,
             "temperature": args.temperature,
-            "environment_seed": args.environment_seed,
-            "controller_seed": args.controller_seed,
             "latent_dim": frozen_fb.latent_dim,
             "N_g": task.num_positive,
             "N_samples": task.num_samples,

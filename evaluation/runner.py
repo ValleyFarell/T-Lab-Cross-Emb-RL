@@ -27,8 +27,10 @@ from .scenarios import Scenario
 class EpisodeResult:
     scenario_id: str
     method: str
+    task_id: int
     environment_seed: int | None
     controller_seed: int
+    temperature: float
     success: bool
     steps: int
     duration: float
@@ -193,8 +195,10 @@ class EpisodeRunner:
         return EpisodeResult(
             scenario_id=scenario.scenario_id,
             method=self.controller.method_name,
+            task_id=scenario.task_id,
             environment_seed=scenario.environment_seed,
             controller_seed=scenario.controller_seed,
+            temperature=self.eval_temperature,
             success=bool(final_info.get("success", False)),
             steps=len(actions),
             duration=duration,

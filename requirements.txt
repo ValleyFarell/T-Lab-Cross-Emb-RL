@@ -8,3 +8,5 @@ ml_collections >= 1.1.0
 moviepy >= 1.0.3
 ogbench == 1.1.4
 wandb >= 0.19.11
+pytest >= 8.0
+mujoco == 3.1.6
