@@ -1,12 +1,4 @@
-
-"""Deterministic episode runner.
-
-This version fixes evaluation reproducibility by:
-- explicitly seeding Python, NumPy, environment, and action-space RNGs;
-- recording reset state checksums;
-- keeping JAX controller RNG isolated from environment RNG;
-- making evaluation randomness controlled only by Scenario seeds.
-"""
+"""Deterministic episode runner with controller-agnostic diagnostics."""
 
 from __future__ import annotations
 
@@ -47,7 +39,6 @@ class EpisodeResult:
 
 
 class EpisodeRunner:
-
     def __init__(
         self,
         env,
@@ -72,43 +63,31 @@ class EpisodeRunner:
             if action_space is not None and hasattr(action_space, "seed"):
                 action_space.seed(seed)
 
-        reset_kwargs: dict[str, Any] = {
-            "options": scenario.reset_options()
-        }
-
+        reset_kwargs: dict[str, Any] = {"options": scenario.reset_options()}
         if scenario.environment_seed is not None:
             reset_kwargs["seed"] = int(scenario.environment_seed)
-
         observation, info = self.env.reset(**reset_kwargs)
 
         goal_xy = np.asarray(
             self.env.unwrapped.cur_goal_xy,
             dtype=np.float64,
         ).copy()
-
-        start_xy = np.asarray(
-            observation[:2],
-            dtype=np.float64,
-        ).copy()
-
-        policy_rng = jax.random.PRNGKey(
-            int(scenario.controller_seed)
-        )
+        start_xy = np.asarray(observation[:2], dtype=np.float64).copy()
+        policy_rng = jax.random.PRNGKey(int(scenario.controller_seed))
 
         observations = []
         positions = []
         actions = []
         intentions = []
-        raw_high_outputs = []
+        diagnostic_values: dict[str, list[np.ndarray]] = {}
+        expected_diagnostic_keys: set[str] | None = None
 
         terminated = False
         truncated = False
         final_info = info
-
         started_at = time.perf_counter()
 
         while not (terminated or truncated):
-
             policy_rng, step_key = jax.random.split(policy_rng)
             high_key, low_key = jax.random.split(step_key)
 
@@ -118,81 +97,67 @@ class EpisodeRunner:
                 rng=high_key,
                 temperature=self.eval_temperature,
             )
-
-            action = self.frozen_fb.low_action(
-                observation,
-                selection.intention,
-                seed=low_key,
-                temperature=self.eval_temperature,
-            )
-
-            action = np.asarray(action)
-
-            observations.append(
-                np.asarray(observation).copy()
-            )
-            positions.append(
-                np.asarray(observation[:2], dtype=np.float64).copy()
-            )
-            actions.append(action.copy())
-            intentions.append(
-                np.asarray(selection.intention).copy()
-            )
-
-            if "raw_high_actor_output" in selection.diagnostics:
-                raw_high_outputs.append(
-                    np.asarray(
-                        selection.diagnostics["raw_high_actor_output"]
-                    ).copy()
+            action = np.asarray(
+                self.frozen_fb.low_action(
+                    observation,
+                    selection.intention,
+                    seed=low_key,
+                    temperature=self.eval_temperature,
                 )
-
-            observation, _, terminated, truncated, final_info = self.env.step(
-                action
             )
+
+            observations.append(np.asarray(observation).copy())
+            positions.append(np.asarray(observation[:2], dtype=np.float64).copy())
+            actions.append(action.copy())
+            intentions.append(np.asarray(selection.intention).copy())
+
+            step_diagnostics = dict(selection.diagnostics)
+            keys = set(step_diagnostics)
+            if expected_diagnostic_keys is None:
+                expected_diagnostic_keys = keys
+                diagnostic_values = {key: [] for key in sorted(keys)}
+            elif keys != expected_diagnostic_keys:
+                missing = sorted(expected_diagnostic_keys - keys)
+                added = sorted(keys - expected_diagnostic_keys)
+                raise ValueError(
+                    "Controller diagnostic keys changed within an episode: "
+                    f"missing={missing}, added={added}"
+                )
+            for key, value in step_diagnostics.items():
+                diagnostic_values[key].append(np.asarray(value).copy())
+
+            observation, _, terminated, truncated, final_info = self.env.step(action)
 
         duration = time.perf_counter() - started_at
-
-        final_xy = np.asarray(
-            observation[:2],
-            dtype=np.float64,
-        )
-
-        final_distance = float(
-            np.linalg.norm(final_xy - goal_xy)
-        )
+        final_xy = np.asarray(observation[:2], dtype=np.float64)
+        final_distance = float(np.linalg.norm(final_xy - goal_xy))
 
         if positions:
             path_points = np.concatenate(
-                [
-                    np.asarray(positions, dtype=np.float64),
-                    final_xy[None, :],
-                ],
+                [np.asarray(positions, dtype=np.float64), final_xy[None, :]],
                 axis=0,
             )
             path_length = float(
-                np.linalg.norm(
-                    np.diff(path_points, axis=0),
-                    axis=-1,
-                ).sum()
+                np.linalg.norm(np.diff(path_points, axis=0), axis=-1).sum()
             )
         else:
             path_length = 0.0
 
         diagnostics = {
-            "initial_observation_checksum": np.asarray(
-                [
-                    np.sum(observations[0]),
-                    np.linalg.norm(observations[0]),
-                ]
+            "initial_observation_checksum": (
+                np.asarray(
+                    [
+                        np.sum(observations[0]),
+                        np.linalg.norm(observations[0]),
+                    ]
+                )
+                if observations
+                else np.zeros(2)
             )
-            if observations
-            else np.zeros(2)
         }
-
-        if raw_high_outputs:
-            diagnostics["raw_high_actor_output"] = np.asarray(
-                raw_high_outputs
-            )
+        diagnostics.update(
+            {key: np.asarray(values) for key, values in diagnostic_values.items()}
+        )
 
         return EpisodeResult(
             scenario_id=scenario.scenario_id,
@@ -215,3 +180,4 @@ class EpisodeRunner:
             intentions=np.asarray(intentions),
             diagnostics=diagnostics,
         )
+

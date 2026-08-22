@@ -1,31 +1,43 @@
+"""Persist an episode without depending on a concrete controller."""
+
 from pathlib import Path
+
+import numpy as np
 
 from evaluation.logger import EpisodeLogger
 from evaluation.visualization import plot_path
 
 
+def _per_step_diagnostics(result):
+    """Select diagnostics aligned with the action axis."""
+
+    step_count = len(result.actions)
+    per_step = {}
+    for key, value in result.diagnostics.items():
+        if key == "initial_observation_checksum":
+            continue
+        array = np.asarray(value)
+        if array.ndim == 0 or array.shape[0] != step_count:
+            raise ValueError(
+                f"Diagnostic {key!r} is not aligned with {step_count} actions: "
+                f"shape={array.shape}"
+            )
+        per_step[key] = array
+    return per_step
+
+
 def save_episode_result(result, output_dir, env):
     output_dir = Path(output_dir)
-
     logger = EpisodeLogger(output_dir)
-
-    raw = result.diagnostics.get(
-        "raw_high_actor_output",
-        None,
-    )
+    per_step = _per_step_diagnostics(result)
 
     for i in range(len(result.actions)):
-        diagnostics = {}
-
-        if raw is not None:
-            diagnostics["raw_high_actor_output"] = raw[i]
-
         logger.add_step(
             result.observations[i],
             result.positions[i],
             result.actions[i],
             result.intentions[i],
-            diagnostics,
+            {key: value[i] for key, value in per_step.items()},
         )
 
     logger.save(
@@ -54,3 +66,4 @@ def save_episode_result(result, output_dir, env):
         output_dir / "path.png",
         env,
     )
+

@@ -27,3 +27,4 @@ results*
 *.pt
 *.pth
 *.ckpt
+comparisons*
