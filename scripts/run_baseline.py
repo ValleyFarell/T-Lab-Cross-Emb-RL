@@ -15,6 +15,7 @@ from baseline.frozen_fb import FrozenFB, load_checkpoint_config
 from baseline.task_encoder import TaskEncoder
 from controllers.baseline import BaselineController
 from controllers.direct_goal import DirectGoalController
+from scripts.run_h0 import make_h0_controller
 from evaluation.runner import EpisodeRunner
 from evaluation.save_episode import save_episode_result
 from evaluation.scenarios import Scenario, xy_to_free_grid_cell
@@ -219,7 +220,13 @@ def main():
     if args.controller == "baseline":
         controller = BaselineController(frozen_fb)
         controller_slug = "baseline"
-    else:
+    elif args.controller == "Two Switch":
+        controller = make_h0_controller(
+        frozen_fb,
+        train_dataset,
+        max_candidates=512,
+    )
+    elif args.controller == "direct_goal":
         controller = DirectGoalController(frozen_fb)
         controller_slug = "direct_goal"
 

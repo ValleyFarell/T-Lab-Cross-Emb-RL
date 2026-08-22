@@ -4,13 +4,13 @@ from controllers.direct_goal import DirectGoalController
 
 
 class FakeFrozenFB:
-    @staticmethod
-    def normalize_latent(latent):
-        latent = np.asarray(latent)
-        return latent / np.linalg.norm(latent) * np.sqrt(latent.size)
+    def normalize_latent(self, latent):
+        raise AssertionError(
+            "Raw direct controller must not normalize task_latent"
+        )
 
 
-def test_direct_goal_controller_bypasses_high_actor():
+def test_direct_goal_controller_passes_raw_latent_and_bypasses_high_actor():
     controller = DirectGoalController(FakeFrozenFB())
     task_latent = np.array([3.0, 4.0])
 
@@ -21,6 +21,7 @@ def test_direct_goal_controller_bypasses_high_actor():
         temperature=0.0,
     )
 
-    expected = task_latent / 5.0 * np.sqrt(2.0)
-    np.testing.assert_allclose(selection.intention, expected)
-    assert selection.diagnostics == {}
+    np.testing.assert_array_equal(
+        selection.intention,
+        task_latent,
+    )
