@@ -24,6 +24,6 @@ class DirectGoalController(HighLevelController):
         temperature: float,
     ) -> IntentionSelection:
         del observation, rng, temperature
-        intention = self.frozen_fb.normalize_latent(task_latent)
+        intention = task_latent
         return IntentionSelection(intention=intention)
 

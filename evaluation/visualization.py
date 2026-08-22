@@ -154,7 +154,7 @@ def plot_path(
     ax.legend(loc="upper left")
     ax.set_xlabel("x")
     ax.set_ylabel("y")
-    ax.set_title(f"success={success}, steps={len(positions) - 1}")
+    ax.set_title(f"success={success}, steps={len(positions)}")
 
     fig.savefig(output_file, dpi=220, bbox_inches="tight")
     plt.close(fig)

@@ -15,41 +15,41 @@
   "overall": {
     "number_of_pairs": 10,
     "baseline_success_rate": 0.9,
-    "candidate_success_rate": 1.0,
-    "success_rate_delta": 0.1,
+    "candidate_success_rate": 0.9,
+    "success_rate_delta": 0.0,
     "success_rate_delta_ci95": [
-      0.0,
+      -0.3,
       0.3
     ],
     "discordant_pairs": {
-      "baseline_only_success": 0,
+      "baseline_only_success": 1,
       "candidate_only_success": 1,
       "mcnemar_exact_p": 1.0
     },
-    "both_success": 9,
+    "both_success": 8,
     "both_failure": 0,
     "steps_delta_both_success": {
-      "mean": -251.55555555555554,
-      "median": -39.0,
+      "mean": -328.0,
+      "median": -251.5,
       "ci95_mean": [
-        -496.1138888888889,
-        -32.99722222222226
+        -503.25625,
+        -216.25
       ]
     },
     "path_length_delta_both_success": {
-      "mean": -35.75731142470272,
-      "median": -8.191662925813851,
+      "mean": -45.89110432145977,
+      "median": -34.55807095046096,
       "ci95_mean": [
-        -68.33016207642407,
-        -7.194434717878145
+        -73.10943978707166,
+        -26.097724142690762
       ]
     },
     "final_distance_delta_all": {
-      "mean": -0.48477470576128595,
-      "median": 0.017552720110451003,
+      "mean": -0.3189336554534814,
+      "median": -0.0004029985451856899,
       "ci95_mean": [
-        -1.5614021856592606,
-        0.07645375284268441
+        -1.5713223385579407,
+        0.5904222339643416
       ]
     }
   },
@@ -57,41 +57,41 @@
     "custom-0_0-to-4_4": {
       "number_of_pairs": 10,
       "baseline_success_rate": 0.9,
-      "candidate_success_rate": 1.0,
-      "success_rate_delta": 0.1,
+      "candidate_success_rate": 0.9,
+      "success_rate_delta": 0.0,
       "success_rate_delta_ci95": [
-        0.0,
+        -0.3,
         0.3
       ],
       "discordant_pairs": {
-        "baseline_only_success": 0,
+        "baseline_only_success": 1,
         "candidate_only_success": 1,
         "mcnemar_exact_p": 1.0
       },
-      "both_success": 9,
+      "both_success": 8,
       "both_failure": 0,
       "steps_delta_both_success": {
-        "mean": -251.55555555555554,
-        "median": -39.0,
+        "mean": -328.0,
+        "median": -251.5,
         "ci95_mean": [
-          -496.1138888888889,
-          -32.99722222222226
+          -503.25625,
+          -216.25
         ]
       },
       "path_length_delta_both_success": {
-        "mean": -35.75731142470272,
-        "median": -8.191662925813851,
+        "mean": -45.89110432145977,
+        "median": -34.55807095046096,
         "ci95_mean": [
-          -68.33016207642407,
-          -7.194434717878145
+          -73.10943978707166,
+          -26.097724142690762
         ]
       },
       "final_distance_delta_all": {
-        "mean": -0.48477470576128595,
-        "median": 0.017552720110451003,
+        "mean": -0.3189336554534814,
+        "median": -0.0004029985451856899,
         "ci95_mean": [
-          -1.5614021856592606,
-          0.07645375284268441
+          -1.5713223385579407,
+          0.5904222339643416
         ]
       }
     }
@@ -174,9 +174,9 @@
           0.43037873274483895
         ],
         "success": true,
-        "steps": 477,
-        "path_length": 55.92946740181852,
-        "final_distance": 0.4381211646062137,
+        "steps": 68,
+        "path_length": 8.402309839334324,
+        "final_distance": 0.4574387524180705,
         "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000001"
       }
     },
@@ -257,9 +257,9 @@
           0.4406489868843162
         ],
         "success": true,
-        "steps": 108,
-        "path_length": 14.073178802865769,
-        "final_distance": 0.49837097723014784,
+        "steps": 492,
+        "path_length": 54.73178147117355,
+        "final_distance": 0.3836019255792212,
         "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000002"
       }
     },
@@ -340,9 +340,9 @@
           -0.9481475363442173
         ],
         "success": true,
-        "steps": 88,
-        "path_length": 11.144748698466826,
-        "final_distance": 0.4525888744461411,
+        "steps": 111,
+        "path_length": 14.760277418555253,
+        "final_distance": 0.37163714910062856,
         "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000003"
       }
     },
@@ -423,9 +423,9 @@
           0.41629564523620965
         ],
         "success": true,
-        "steps": 322,
-        "path_length": 41.417167281600896,
-        "final_distance": 0.4940129134906675,
+        "steps": 688,
+        "path_length": 100.78837381751121,
+        "final_distance": 0.44975661267541606,
         "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000004"
       }
     },
@@ -506,9 +506,9 @@
           0.09446449835144466
         ],
         "success": true,
-        "steps": 290,
-        "path_length": 44.18358109734377,
-        "final_distance": 0.42771412686783183,
+        "steps": 95,
+        "path_length": 13.621908295940118,
+        "final_distance": 0.37799932285578447,
         "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000005"
       }
     },
@@ -589,9 +589,9 @@
           0.7414646123547528
         ],
         "success": true,
-        "steps": 225,
-        "path_length": 37.87581567815464,
-        "final_distance": 0.4352049337066973,
+        "steps": 59,
+        "path_length": 7.591942821066347,
+        "final_distance": 0.48228974112750544,
         "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000006"
       }
     },
@@ -672,9 +672,9 @@
           -0.3360403893976456
         ],
         "success": true,
-        "steps": 307,
-        "path_length": 46.68811182760357,
-        "final_distance": 0.4782367391796059,
+        "steps": 327,
+        "path_length": 42.02620445395597,
+        "final_distance": 0.4743856292963017,
         "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000007"
       }
     },
@@ -754,10 +754,10 @@
           -0.8473834212520857,
           0.5598375844802292
         ],
-        "success": true,
-        "steps": 369,
-        "path_length": 47.42275139285657,
-        "final_distance": 0.482336273298241,
+        "success": false,
+        "steps": 1000,
+        "path_length": 145.05014020313686,
+        "final_distance": 2.3387445718507998,
         "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000008"
       }
     },
@@ -838,9 +838,9 @@
           0.937081325641864
         ],
         "success": true,
-        "steps": 449,
-        "path_length": 58.85505714012196,
-        "final_distance": 0.4872091396940707,
+        "steps": 182,
+        "path_length": 25.367406121464434,
+        "final_distance": 0.4936234068171246,
         "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000009"
       }
     },
@@ -921,9 +921,9 @@
           0.0037491842974775036
         ],
         "success": true,
-        "steps": 67,
-        "path_length": 8.989130930437273,
-        "final_distance": 0.4383616908601188,
+        "steps": 90,
+        "path_length": 11.824272874101183,
+        "final_distance": 0.4610902247369293,
         "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000010"
       }
     }
