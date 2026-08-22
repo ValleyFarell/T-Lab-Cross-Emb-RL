@@ -45,7 +45,12 @@ class TwoSwitchPlanner:
 
     def score_pairs(self, observation, goal_latent):
         s = jnp.asarray(observation)[None]
-        zg = jnp.asarray(goal_latent)
+
+        # Reward representation: используется при вычислении ценности.
+        zg_reward = jnp.asarray(goal_latent)
+
+        # Policy intention: используется только как вход в F(s, z).
+        zg_policy = self.frozen_fb.normalize_latent(zg_reward)
 
         w = self.candidates
         zw = self.frozen_fb.normalize_latent(
@@ -81,7 +86,11 @@ class TwoSwitchPlanner:
         fw2_z2 = self._mean_forward(w2, z2)
         fw2_zg = self._mean_forward(
             w2,
-            jnp.repeat(zg[None], K*K, axis=0),
+            jnp.repeat(
+                zg_policy[None],
+                K * K,
+                axis=0,
+            ),
         )
 
         fs_z1 = fs_z1.reshape(K, 1, -1)
@@ -90,29 +99,64 @@ class TwoSwitchPlanner:
         fw2_z2 = fw2_z2.reshape(K, K, -1)
         fw2_zg = fw2_zg.reshape(K, K, -1)
 
-        eta1_num = jnp.sum(fs_z1 * zw[:, None, :], axis=-1)
-        eta1_den = jnp.sum(fw1_z1 * zw[:, None, :], axis=-1)
+        eta1_num = jnp.sum(
+            fs_z1 * zw[:, None, :],
+            axis=-1,
+        )
+        eta1_den = jnp.sum(
+            fw1_z1 * zw[:, None, :],
+            axis=-1,
+        )
         eta1 = eta1_num / (eta1_den + 1e-8)
 
-        eta2_num = jnp.sum(fw1_z2 * zw[None, :, :], axis=-1)
-        eta2_den = jnp.sum(fw2_z2 * zw[None, :, :], axis=-1)
+        eta2_num = jnp.sum(
+            fw1_z2 * zw[None, :, :],
+            axis=-1,
+        )
+        eta2_den = jnp.sum(
+            fw2_z2 * zw[None, :, :],
+            axis=-1,
+        )
         eta2 = eta2_num / (eta2_den + 1e-8)
 
+        # Direct policy toward the final goal:
+        # F receives normalized policy intention,
+        # while the value is evaluated against the raw reward latent.
         v_sg = jnp.sum(
-            self._mean_forward(s, zg[None])[0] * zg
+            self._mean_forward(
+                s,
+                zg_policy[None],
+            )[0]
+            * zg_reward
         )
 
         score = (
-            jnp.sum(fs_z1 * zg, axis=-1)
-            + eta1 * (
-                jnp.sum(fw1_z2 * zg, axis=-1)
-                -
-                jnp.sum(fw1_z1 * zg, axis=-1)
+            jnp.sum(
+                fs_z1 * zg_reward,
+                axis=-1,
             )
-            + eta1 * eta2 * (
-                jnp.sum(fw2_zg * zg, axis=-1)
-                -
-                jnp.sum(fw2_z2 * zg, axis=-1)
+            + eta1
+            * (
+                jnp.sum(
+                    fw1_z2 * zg_reward,
+                    axis=-1,
+                )
+                - jnp.sum(
+                    fw1_z1 * zg_reward,
+                    axis=-1,
+                )
+            )
+            + eta1
+            * eta2
+            * (
+                jnp.sum(
+                    fw2_zg * zg_reward,
+                    axis=-1,
+                )
+                - jnp.sum(
+                    fw2_z2 * zg_reward,
+                    axis=-1,
+                )
             )
             - v_sg
         )
@@ -130,10 +174,10 @@ class TwoSwitchPlanner:
             scores.shape,
         )
 
-        w2 = self.candidates[index[1]]
+        w1 = self.candidates[index[0]]
 
         intention = self.frozen_fb.normalize_latent(
-            self.frozen_fb.backward_repr(w2[None])[0]
+            self.frozen_fb.backward_repr(w1[None])[0]
         )
 
         return TwoSwitchSelection(

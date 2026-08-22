@@ -60,7 +60,7 @@ def parse_args():
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument(
         "--controller",
-        choices=("baseline", "direct"),
+        choices=("baseline", "direct", "h0"),
         default="baseline",
         help="baseline uses high_actor; direct sends the task latent to low_actor.",
     )
@@ -220,15 +220,20 @@ def main():
     if args.controller == "baseline":
         controller = BaselineController(frozen_fb)
         controller_slug = "baseline"
-    elif args.controller == "Two Switch":
-        controller = make_h0_controller(
-        frozen_fb,
-        train_dataset,
-        max_candidates=512,
-    )
-    elif args.controller == "direct_goal":
+
+    elif args.controller == "direct":
         controller = DirectGoalController(frozen_fb)
         controller_slug = "direct_goal"
+
+    elif args.controller == "h0":
+        from scripts.run_h0 import make_h0_controller
+
+        controller = make_h0_controller(
+            frozen_fb,
+            train_dataset,
+            max_candidates=args.max_candidates,
+        )
+        controller_slug = "h0_two_switch"
 
     experiment_name = f"{controller_slug}_{scenario_name}"
 
