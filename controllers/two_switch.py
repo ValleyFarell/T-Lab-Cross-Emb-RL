@@ -9,6 +9,7 @@ from .base import HighLevelController, IntentionSelection
 
 class TwoSwitchController(HighLevelController):
     method_name = "fbpiswitch_h0_two_switch"
+    replanned_diagnostic = "h0_replanned"
 
     def __init__(self, planner, *, replan_interval: int = 1):
         if (
@@ -53,7 +54,7 @@ class TwoSwitchController(HighLevelController):
             self._cached = self.planner.select(observation, task_latent)
 
         diagnostics = dict(self._cached.diagnostics)
-        diagnostics["h0_replanned"] = bool(replanned)
+        diagnostics[self.replanned_diagnostic] = bool(replanned)
         result = IntentionSelection(
             intention=self._cached.intention,
             diagnostics=diagnostics,

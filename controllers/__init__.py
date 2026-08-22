@@ -2,6 +2,7 @@ from .base import HighLevelController, IntentionSelection
 from .baseline import BaselineController
 from .direct_goal import DirectGoalController
 from .two_switch import TwoSwitchController
+from .adaptive_switch import AdaptiveSwitchController
 
 __all__ = [
     "HighLevelController",
@@ -9,5 +10,5 @@ __all__ = [
     "BaselineController",
     "DirectGoalController",
     "TwoSwitchController",
+    "AdaptiveSwitchController",
 ]
-

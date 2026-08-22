@@ -22,7 +22,7 @@ from utils.datasets import Dataset
 from utils.env_utils import make_env_and_datasets
 
 
-PUBLIC_CONTROLLERS = ("baseline", "direct", "h0")
+PUBLIC_CONTROLLERS = ("baseline", "direct", "h0", "h0b")
 
 
 def parse_args(argv=None):
@@ -65,25 +65,25 @@ def parse_args(argv=None):
         "--max-candidates",
         type=int,
         default=64,
-        help="H0 only: deterministic candidate subset size (default: 64).",
+        help="H0/H0-B: deterministic candidate subset size (default: 64).",
     )
     parser.add_argument(
         "--pair-batch-size",
         type=int,
         default=4096,
-        help="H0 only: number of candidate pairs per forward batch.",
+        help="H0/H0-B: number of candidate pairs per forward batch.",
     )
     parser.add_argument(
         "--eta-epsilon",
         type=float,
         default=1e-6,
-        help="H0 only: minimum absolute eta denominator.",
+        help="H0/H0-B: minimum absolute eta denominator.",
     )
     parser.add_argument(
         "--h0-replan-interval",
         type=int,
         default=1,
-        help="H0 only: execute w1 for this many steps before replanning.",
+        help="H0/H0-B: execute the selected first subgoal before replanning.",
     )
     parser.add_argument(
         "--results-dir",
@@ -101,7 +101,7 @@ def parse_args(argv=None):
     if not has_start and args.task_id is None:
         args.task_id = 1
 
-    if args.controller == "h0":
+    if args.controller in {"h0", "h0b"}:
         if args.max_candidates <= 0:
             parser.error("--max-candidates must be positive.")
         if args.pair_batch_size <= 0:
@@ -154,6 +154,18 @@ def build_controller(args, frozen_fb, train_dataset):
             replan_interval=args.h0_replan_interval,
         )
         return controller, "h0_two_switch"
+    if args.controller == "h0b":
+        from scripts.run_h0b import make_h0b_controller
+
+        controller = make_h0b_controller(
+            frozen_fb,
+            train_dataset,
+            max_candidates=args.max_candidates,
+            pair_batch_size=args.pair_batch_size,
+            eta_epsilon=args.eta_epsilon,
+            replan_interval=args.h0_replan_interval,
+        )
+        return controller, "h0b_adaptive_depth"
     raise ValueError(f"Unknown controller: {args.controller}")
 
 
@@ -313,4 +325,3 @@ def main(argv=None):
 
 if __name__ == "__main__":
     main()
-

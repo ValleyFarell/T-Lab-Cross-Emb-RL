@@ -231,6 +231,7 @@ class TwoSwitchPlanner:
         fw_goal = jnp.sum(fw_zg * zg_reward, axis=-1)
 
         score_chunks = []
+        two_switch_value_chunks = []
         eta2_chunks = []
         eta2_valid_chunks = []
         eta2_clipped_chunks = []
@@ -251,23 +252,35 @@ class TwoSwitchPlanner:
                 self.self_measure[j],
             )
 
-            score = (
+            two_switch_value = (
                 fs_goal[i]
                 + eta1[i]
                 * (jnp.sum(fw1_z2 * zg_reward, axis=-1) - self_goal[i])
                 + eta1[i]
                 * eta2
                 * (fw_goal[j] - self_goal[j])
-                - direct_value
             )
-            valid_pair = eta1_valid[i] & eta2_valid & jnp.isfinite(score)
-            score_chunks.append(jnp.where(valid_pair, score, -jnp.inf))
+            valid_pair = eta1_valid[i] & eta2_valid & jnp.isfinite(two_switch_value)
+            two_switch_value = jnp.where(valid_pair, two_switch_value, -jnp.inf)
+            two_switch_value_chunks.append(two_switch_value)
+            score_chunks.append(
+                jnp.where(valid_pair, two_switch_value - direct_value, -jnp.inf)
+            )
             eta2_chunks.append(eta2)
             eta2_valid_chunks.append(eta2_valid)
             eta2_clipped_chunks.append(eta2_clipped)
 
         scores = jnp.concatenate(score_chunks).reshape(k, k)
+        one_switch_values = fs_goal + eta1 * (fw_goal - self_goal)
+        one_switch_values = jnp.where(
+            eta1_valid & jnp.isfinite(one_switch_values),
+            one_switch_values,
+            -jnp.inf,
+        )
         details = {
+            "direct_value": direct_value,
+            "one_switch_values": one_switch_values,
+            "two_switch_values": jnp.concatenate(two_switch_value_chunks).reshape(k, k),
             "eta1": eta1,
             "eta1_valid": eta1_valid,
             "eta1_clipped": eta1_clipped,
@@ -329,6 +342,12 @@ class TwoSwitchPlanner:
             intention=intention,
             diagnostics={
                 "h0_score": float(scores_np[i, j]),
+                "h0_two_switch_value": float(
+                    np.asarray(details.get("two_switch_values", scores))[i, j]
+                ),
+                "h0_direct_value": float(
+                    np.asarray(details.get("direct_value", np.nan))
+                ),
                 "w1_index": int(i),
                 "w2_index": int(j),
                 "w1_source_index": int(self.source_indices[i]),

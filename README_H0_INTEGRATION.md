@@ -1,65 +1,37 @@
-# H0 integration
+# H0 integration checklist
 
-## Added files
-
-Copy:
-
-```
-baseline/two_switch_planner.py
-controllers/two_switch.py
-scripts/run_h0.py
-```
-
-## Change required
-
-Where the current evaluation creates:
-
-```
-BaselineController(frozen_fb)
-```
-
-replace it with:
+Copy the supplied files into the repository while preserving their relative
+paths. Existing imports from `baseline.two_switch_planner` remain valid through
+the compatibility shim, but new code should use:
 
 ```python
-from scripts.run_h0 import make_h0_controller
-
-controller = make_h0_controller(
-    frozen_fb,
-    train_dataset,
-    max_candidates=512,
-)
+from hypotheses.h0 import TwoSwitchPlanner
+from controllers import TwoSwitchController
 ```
 
-No training changes.
+The candidate source must remain training data only:
 
-No checkpoint changes.
-
-## Candidate source
-
-Candidates must come from offline dataset:
-
-```
+```python
 train_dataset["observations"]
 ```
 
-Do not use evaluation trajectories.
+Do not build candidate sets from validation states or evaluation trajectories.
 
-## Current execution mode
+After copying, run:
 
-The planner computes:
-
-```
-(s, g) -> (w1, w2)
-```
-
-but returns the second-stage intention as the executable intention.
-
-This matches the existing stateless controller interface.
-
-A true stateful execution:
-
-```
-s -> w1 -> w2 -> g
+```powershell
+python -m pytest -q
+python -m scripts.run_h0 --help
 ```
 
-requires extending EpisodeRunner with switch memory and hit detection.
+Then use the same scenario and seeds for baseline and H0:
+
+```powershell
+python -m scripts.run_baseline --controller baseline --task-id 1 --environment-seed 0 --controller-seed 0 --temperature 0
+python -m scripts.run_h0 --task-id 1 --environment-seed 0 --controller-seed 0 --temperature 0
+```
+
+Verify that the H0 run's `config.json` contains `method_config` and that its
+`trajectory.npz` contains `diagnostic_h0_score`, `diagnostic_w1_index`, and
+`diagnostic_w2_index`.
+
