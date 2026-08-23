@@ -1,3 +1,5 @@
+"""Подготовка среды, офлайн-наборов и разметки награды."""
+
 from collections import deque
 import re
 import time
@@ -11,7 +13,7 @@ from utils.datasets import Dataset
 from utils.reward_configs import complex_rewards_maze
 
 class EpisodeMonitor(gymnasium.Wrapper):
-    """Environment wrapper to monitor episode statistics."""
+    """Собирает статистику эпизода поверх исходной среды."""
 
     def __init__(self, env, filter_regexes=None):
         super().__init__(env)
@@ -27,7 +29,7 @@ class EpisodeMonitor(gymnasium.Wrapper):
     def step(self, action):
         observation, reward, terminated, truncated, info = self.env.step(action)
 
-        # Remove keys that are not needed for logging.
+        # Удаляем поля, не нужные для сохранения журнала.
         for filter_regex in self.filter_regexes:
             for key in list(info.keys()):
                 if re.match(filter_regex, key) is not None:
@@ -58,7 +60,7 @@ class EpisodeMonitor(gymnasium.Wrapper):
 
 
 class FrameStackWrapper(gymnasium.Wrapper):
-    """Environment wrapper to stack observations."""
+    """Объединяет несколько последовательных наблюдений среды."""
 
     def __init__(self, env, num_stack):
         super().__init__(env)
@@ -92,20 +94,17 @@ def make_env_and_datasets(dataset_name, frame_stack=None,
                           env_only=False, dataset_only=False, 
                           action_clip_eps=1e-5, 
                           **kwargs):
-    """Make offline RL environment and datasets.
+    """Создаёт среду и загружает существующие офлайн-наборы.
 
-    Args:
-        dataset_name: Name of the environment (dataset).
-        frame_stack: Number of frames to stack.
-        env_only: Whether to return only the environment.
-        dataset_only: Whether to return only the datasets.
-        action_clip_eps: Epsilon for action clipping.
-        **kwargs: Additional keyword arguments.
-
-    Returns:
-        A tuple of the environment (if `dataset_only` is False), training dataset, and validation dataset.
+    Параметры:
+        dataset_name: параметр исходного вычисления.
+        frame_stack: параметр исходного вычисления.
+        env_only: параметр исходного вычисления.
+        dataset_only: параметр исходного вычисления.
+        action_clip_eps: параметр исходного вычисления.
+        **kwargs: дополнительные именованные аргументы.
     """
-    # Use compact dataset to save memory.
+    # Используем компактный набор данных для экономии памяти.
     if 'ogbench' in dataset_name:
         dataset_name = '-'.join(dataset_name.split('-')[1:])
         env_and_datasets = ogbench.make_env_and_datasets(
@@ -139,7 +138,7 @@ def make_env_and_datasets(dataset_name, frame_stack=None,
         assert np.all(env.action_space.low == -1.0)
         assert np.all(env.action_space.high == 1.0)
         
-        # Clip dataset actions.
+        # Ограничиваем действия набора допустимым диапазоном.
         eps = action_clip_eps
         train_dataset = train_dataset.copy(
             add_or_replace=dict(actions=np.clip(train_dataset['actions'], -1 + eps, 1 - eps))
@@ -154,25 +153,22 @@ def make_env_and_datasets(dataset_name, frame_stack=None,
 
 
 def relabel_dataset(env_name, env, dataset, complex_task_name=None):
-    """Relabel the dataset with rewards and masks based on the fixed task of the environment.
+    """Пересчитывает награды существующего набора для текущей цели среды.
 
-    Args:
-        env_name: Name of the environment.
-        env: Environment.
-        dataset: Dataset dictionary.
-
-    Returns:
-        The relabeled dataset.
-    
+    Параметры:
+        env_name: параметр исходного вычисления.
+        env: экземпляр проверочной среды.
+        dataset: параметр исходного вычисления.
+        complex_task_name: параметр исходного вычисления.
     """
 
-    # Locomotion environments.
+    # Обрабатываем среды физического передвижения.
     qpos_xy_start_idx = 0
     qvel_xy_start_idx = 0
     goal_xy = env.unwrapped.cur_goal_xy
     goal_tol = env.unwrapped._goal_tol
 
-    # Compute successes.
+    # Определяем, какие состояния достигают заданной цели.
     dists = np.linalg.norm(dataset['qpos'][:, qpos_xy_start_idx : qpos_xy_start_idx + 2] - goal_xy, axis=-1)
     successes = (dists <= goal_tol).astype(np.float32)
 
@@ -184,7 +180,7 @@ def relabel_dataset(env_name, env, dataset, complex_task_name=None):
         rewards = complex_rewards_maze(env, observations, env.unwrapped.cur_task_id, complex_task_name)
         masks = np.ones_like(rewards)
     else:
-        rewards = successes  # 1.0 if s == g else 0.0
+        rewards = successes  # Награда равна 1.0 при достижении цели и 0.0 в остальных случаях.
         masks = 1.0 - successes
 
     new_dataset = dataset.copy(

@@ -1,3 +1,5 @@
+"""Проверки корректности компонента custom scenarios и его взаимодействия со стендом."""
+
 import numpy as np
 import pytest
 

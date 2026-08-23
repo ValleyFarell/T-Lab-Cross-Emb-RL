@@ -1,3 +1,5 @@
+"""Проверки корректности компонента direct goal controller и его взаимодействия со стендом."""
+
 import numpy as np
 
 from controllers.direct_goal import DirectGoalController

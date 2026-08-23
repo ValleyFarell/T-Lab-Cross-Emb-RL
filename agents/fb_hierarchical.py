@@ -1,3 +1,5 @@
+"""Высокоуровневая политика поверх заранее обученных FB-представлений."""
+
 from typing import Any
 import os
 import json
@@ -13,9 +15,7 @@ from utils.networks import GCActor, GCValue
 from agents import FBAgent
 
 class FBHierarchicalAgent(flax.struct.PyTreeNode):
-    """
-        Hierarchical FB-based agent where high-level policy is learned on top of pretrained FB representations and low-level actor.    
-    """
+    """Обучает верхний уровень управления поверх готового FB-агента."""
     
     rng: Any
     network: Any
@@ -31,7 +31,7 @@ class FBHierarchicalAgent(flax.struct.PyTreeNode):
         FB_agent = FBAgent.create(FLAGS.seed, example_batch, frozen_config)
         FB_agent = restore_agent(FB_agent, config['frozen_path'], config['restore_epoch'])
         
-        # Unfreeze parameters to modify
+        # Временно открываем параметры для изменения.
         agent_params = flax.core.unfreeze(self.network.params)
         fb_params = flax.core.unfreeze(FB_agent.network.params)
         
@@ -39,7 +39,7 @@ class FBHierarchicalAgent(flax.struct.PyTreeNode):
             if module_name in ['modules_backward_repr', 'modules_forward_repr', 'modules_actor']:
                 agent_params[module_name] = fb_params[module_name]
                 
-        # Freeze back
+        # Снова запрещаем изменение параметров.
         agent = self.replace(network=self.network.replace(params=agent_params))
         return agent
     
@@ -58,9 +58,9 @@ class FBHierarchicalAgent(flax.struct.PyTreeNode):
         new_rng, rng = jax.random.split(self.rng)
 
         latents_norm, _ = self.sample_latents(batch['observations'], rng, self.config['margin_latent_mix_prob'], permute_bool=True)
-        # latents = batch['latents']
+        # Ранее использовавшийся вариант: latents = batch['latents']
         
-        # Sample actions from actor
+        # Выбираем действия из распределения политики.
         dist = self.network.select('actor')(observations, latents_norm, goal_encoded=True)
             
         def sample_action(seed):
@@ -70,11 +70,11 @@ class FBHierarchicalAgent(flax.struct.PyTreeNode):
         actions = jax.vmap(sample_action)(seeds)
         
         target_forward_repr = jax.vmap(lambda a: self.network.select('forward_repr')(observations, latents_norm, actions=a, goal_encoded=True))(actions)
-        target_forward_repr = jnp.mean(target_forward_repr, axis=0) # over actions
-        target_forward_repr = jnp.mean(target_forward_repr, axis=0) # over ensemble
+        target_forward_repr = jnp.mean(target_forward_repr, axis=0) # Объединяем значения по действиям.
+        target_forward_repr = jnp.mean(target_forward_repr, axis=0) # Объединяем значения по участникам ансамбля.
         target_forward_repr = jax.lax.stop_gradient(target_forward_repr)
     
-        # Marginal forward representation (learned)
+        # Вычисляем обученное усреднённое прямое представление.
         margin_forward_repr = self.network.select('margin_forward_repr')(observations, latents_norm, goal_encoded=True, params=grad_params)
         marginalization_loss = jnp.mean((target_forward_repr - margin_forward_repr) ** 2)
     
@@ -87,7 +87,7 @@ class FBHierarchicalAgent(flax.struct.PyTreeNode):
 
 
     def high_actor_loss(self, batch, grad_params, rng): 
-        """Compute the high-level actor loss."""
+        """Вычисляет функцию потерь высокоуровневой политики намерений."""
         obs = batch['observations']
         subgoals = batch['high_actor_targets']   
         goals = batch['high_actor_goals']
@@ -133,7 +133,7 @@ class FBHierarchicalAgent(flax.struct.PyTreeNode):
     
     @jax.jit
     def total_loss(self, batch, grad_params, rng=None):
-        """Compute the total loss."""
+        """Собирает общую функцию потерь всех обучаемых компонентов."""
         info = {}
         rng = rng if rng is not None else self.rng
         rng, high_actor_rng, marginalize_rng = jax.random.split(rng, 3)
@@ -152,7 +152,7 @@ class FBHierarchicalAgent(flax.struct.PyTreeNode):
 
     @jax.jit
     def update(self, batch):
-        """Update the agent and return a new agent with information dictionary."""
+        """Обновляет агента и возвращает новое состояние вместе с диагностикой."""
         new_rng, rng = jax.random.split(self.rng)
 
         def loss_fn(grad_params):
@@ -163,14 +163,14 @@ class FBHierarchicalAgent(flax.struct.PyTreeNode):
 
     @jax.jit
     def infer_latent(self, batch):
-        """Infer the latent variable using rewards on downstream tasks."""
+        """Строит представление конечной задачи по наградам офлайн-состояний."""
         observations = batch['observations']
         rewards = batch['rewards']
         weights = jax.nn.softmax(self.config['reward_temperature'] * rewards, axis=0)
         
         backward_reprs = self.network.select('backward_repr')(observations)
         
-        # reward-weighted average
+        # Среднее представление состояний, взвешенное по награде.
         latent = jnp.mean((weights * rewards)[..., None] * backward_reprs, axis=0)
         latent = self.normalize_z(latent)
 
@@ -178,13 +178,13 @@ class FBHierarchicalAgent(flax.struct.PyTreeNode):
 
     @jax.jit
     def sample_latents(self, targets, rng, latent_mix_prob, permute_bool=False):
-        """Sample latent variables and intrinsic rewards."""
+        """Формирует намерения и связанные внутренние награды."""
         batch_size = targets.shape[0]
         
         rng, latent_rng, perm_rng, mix_rng = jax.random.split(rng, 4)
 
         latents = jax.random.normal(latent_rng, shape=(batch_size, self.config['latent_dim']))
-        # if self.config['normalize_latent']:
+        # Ранее использовавшийся вариант: if self.config['normalize_latent']:
         norm_latents = self.normalize_z(latents)
         
         backward_reprs = self.network.select('backward_repr')(targets)
@@ -196,7 +196,7 @@ class FBHierarchicalAgent(flax.struct.PyTreeNode):
             operand=None
         )
         
-        # if self.config['normalize_latent']:
+        # Ранее использовавшийся вариант: if self.config['normalize_latent']:
         norm_latent_backward_reprs = self.normalize_z(latent_backward_reprs)
         
         flags_latents = jax.random.uniform(mix_rng, (batch_size, 1)) < latent_mix_prob
@@ -207,7 +207,7 @@ class FBHierarchicalAgent(flax.struct.PyTreeNode):
 
     @jax.jit
     def sample_actions(self, observations, latents=None, seed=None, temperature=1.0):
-        """Sample actions from the actor."""
+        """Выбирает действие исходной политики по состоянию и намерению."""
 
         high_seed, low_seed = jax.random.split(seed)
 
@@ -224,24 +224,24 @@ class FBHierarchicalAgent(flax.struct.PyTreeNode):
         
     @classmethod
     def create(cls, seed, ex_batch, config):
-        """Create a new agent.
+        """Создаёт экземпляр агента или структуры данных с заданной конфигурацией.
 
-        Args:
-            seed: Random seed.
-            ex_batch: Example batch.
-            config: Configuration dictionary.
+        Параметры:
+            seed: начальное значение генератора случайных чисел.
+            ex_batch: пример блока переходов.
+            config: конфигурация агента или вспомогательной модели.
         """
         rng = jax.random.PRNGKey(seed)
         rng, init_rng = jax.random.split(rng, 2)
 
         ex_observations = ex_batch['observations']
         ex_actions = ex_batch['actions']
-        # state_dim = ex_observations.shape[-1]       
+        # Ранее использовавшийся вариант: state_dim = ex_observations.shape[-1]
         action_dim = ex_actions.shape[-1]       
         ex_latents = jnp.ones((*ex_actions.shape[:-1], config['latent_dim']))
 
 
-        # Define networks.
+        # Создаём вычислительные сети агента.
         forward_repr_def = GCValue(
             hidden_dims=config['forward_repr_hidden_dims'],
             value_dim=config['latent_dim'],
@@ -265,7 +265,7 @@ class FBHierarchicalAgent(flax.struct.PyTreeNode):
             const_std=config['const_std'],
         )
 
-        # Trainable new modules
+        # Новые модули, параметры которых разрешено обучать.
 
         margin_forward_repr_def = GCValue(
             hidden_dims=config['forward_repr_hidden_dims'],
@@ -287,7 +287,7 @@ class FBHierarchicalAgent(flax.struct.PyTreeNode):
             backward_repr=(backward_repr_def, (ex_observations,)),
             actor=(actor_def, (ex_observations, ex_latents, True)),
             
-            # Trainable new modules
+            # Новые модули, параметры которых разрешено обучать.
             margin_forward_repr=(margin_forward_repr_def, (ex_observations, ex_latents, None, None, True)),
             high_actor=(high_actor_def, (ex_observations, ex_latents, True)),
         )
@@ -297,7 +297,7 @@ class FBHierarchicalAgent(flax.struct.PyTreeNode):
             mask = {}
         
             for k in flat:
-                module_name = k[0]  # e.g. 'modules_forward_repr'
+                module_name = k[0]  # Например: modules_forward_repr.
         
                 if module_name in [
                     'modules_margin_forward_repr',
@@ -330,52 +330,52 @@ class FBHierarchicalAgent(flax.struct.PyTreeNode):
 def get_config():
     config = ml_collections.ConfigDict(
         dict(
-            # Agent hyperparameters.
-            agent_name='hfb',  # Agent name.
-            lr=1e-4,  # Learning rate.
-            batch_size=1024,  # Batch size.
-            actor_hidden_dims=(512, 512, 512, 512),  # Actor network hidden dimensions.
-            forward_repr_hidden_dims=(512, 512, 512, 512),  # Forward representation network hidden dimensions.
-            backward_repr_hidden_dims=(512, 512, 512, 512),  # Backward representation network hidden dimension.
-            actor_layer_norm=False,  # Whether to use layer normalization for the actor.
-            forward_repr_layer_norm=False,  # Whether to use layer normalization for the forward representations.
-            backward_repr_layer_norm=False,  # Whether to use layer normalization for the backward representations.
-            activation='gelu',  # Activation function.
-            latent_dim=128,  # Latent dimension for transition latents.
-            discount=0.99,  # Discount factor.
-            tau=0.005,  # Target network update rate.
-            normalize_latent=True,  # Whether to normalize backward representations.
-            reward_temperature=0.0,  # Reward weight temperature.
-            repr_agg='mean',  # Aggregation method for target forward backward representation.
-            # orthonorm_coeff=0.0,  # orthonormalization coefficient
-            margin_latent_mix_prob=0.5,  # Probability to replace latents sampled from gaussian with backward representations.
-            # alpha=0.3,  # BC coefficient in RPG+BC.
-            tanh_squash=True,  # Whether to use tanh squash for the actor.
-            const_std=True,  # Whether to use constant standard deviation for the actor.
-            # normalize_q_loss=True,  # Whether to normalize the Q loss.
+            # Настройки обучения и архитектуры агента.
+            agent_name='hfb',  # Название реализации агента.
+            lr=1e-4,  # Шаг обновления обучаемых параметров.
+            batch_size=1024,  # Количество примеров в одном обучающем блоке.
+            actor_hidden_dims=(512, 512, 512, 512),  # Размеры скрытых слоёв сети политики.
+            forward_repr_hidden_dims=(512, 512, 512, 512),  # Размеры скрытых слоёв прямого представления F.
+            backward_repr_hidden_dims=(512, 512, 512, 512),  # Размеры скрытых слоёв обратного представления B.
+            actor_layer_norm=False,  # Использовать ли нормализацию слоёв политики.
+            forward_repr_layer_norm=False,  # Использовать ли нормализацию слоёв прямого представления.
+            backward_repr_layer_norm=False,  # Использовать ли нормализацию слоёв обратного представления.
+            activation='gelu',  # Функция активации нейронной сети.
+            latent_dim=128,  # Размерность представления намерения.
+            discount=0.99,  # Коэффициент дисконтирования будущих состояний.
+            tau=0.005,  # Скорость плавного обновления целевой сети.
+            normalize_latent=True,  # Нормализовать ли обратные представления состояний.
+            reward_temperature=0.0,  # Температура весов, определяемых наградой.
+            repr_agg='mean',  # Способ объединения оценок целевого FB-ансамбля.
+            # Сохранённый вариант: orthonorm_coeff=0.0, — Коэффициент регуляризации ортонормальности.
+            margin_latent_mix_prob=0.5,  # Вероятность заменить случайное намерение реальным обратным представлением.
+            # Сохранённый вариант: alpha=0.3, — Вес воспроизведения офлайн-действий при обучении политики.
+            tanh_squash=True,  # Ограничивать ли действия политики функцией tanh.
+            const_std=True,  # Использовать ли постоянный разброс действий политики.
+            # Сохранённый вариант: normalize_q_loss=True, — Нормировать ли потери оценки Q.
             num_zero_shot_samples=100_000,  
             
-            # Dataset hyperparameters.
-            dataset_class='HGCDataset',  # Dataset class name.
-            relabeling=False,  # Whether to relabel rewards.
-            value_p_curgoal=0.2,  # Probability of using the current state as the value goal.
-            value_p_trajgoal=0.5,  # Probability of using a future state in the same trajectory as the value goal.
-            value_p_randomgoal=0.3,  # Probability of using a random state as the value goal.
-            value_geom_sample=True,  # Whether to use geometric sampling for future value goals.
-            actor_p_curgoal=0.0,  # Probability of using the current state as the actor goal.
-            actor_p_trajgoal=1.0,  # Probability of using a future state in the same trajectory as the actor goal.
-            actor_p_randomgoal=0.0,  # Probability of using a random state as the actor goal.
-            actor_geom_sample=False,  # Whether to use geometric sampling for future actor goals.
-            gc_negative=False,  # Whether to use '0 if s == g else -1' (True) or '1 if s == g else 0' (False) as reward.
-            p_aug=0.0,  # Probability of applying image augmentation.
-            frame_stack=ml_collections.config_dict.placeholder(int),  # Number of frames to stack.
+            # Настройки подготовки офлайн-набора данных.
+            dataset_class='HGCDataset',  # Имя класса используемого набора данных.
+            relabeling=False,  # Пересчитывать ли награды для выбранной цели.
+            value_p_curgoal=0.2,  # Вероятность выбрать текущее состояние целью оценки ценности.
+            value_p_trajgoal=0.5,  # Вероятность выбрать будущую точку той же траектории целью ценности.
+            value_p_randomgoal=0.3,  # Вероятность выбрать случайное состояние целью ценности.
+            value_geom_sample=True,  # Использовать ли геометрическое распределение для будущих целей ценности.
+            actor_p_curgoal=0.0,  # Вероятность выбрать текущее состояние целью политики.
+            actor_p_trajgoal=1.0,  # Вероятность выбрать будущую точку той же траектории целью политики.
+            actor_p_randomgoal=0.0,  # Вероятность выбрать случайное состояние целью политики.
+            actor_geom_sample=False,  # Использовать ли геометрическое распределение для будущих целей политики.
+            gc_negative=False,  # Выбор схемы награды: 0 при успехе и -1 иначе либо 1 при успехе и 0 иначе.
+            p_aug=0.0,  # Вероятность случайного преобразования изображения.
+            frame_stack=ml_collections.config_dict.placeholder(int),  # Количество объединяемых последовательных кадров.
             
-            # FB with hierarchy specific hyperparameters.
+            # Специальные настройки иерархического FB-агента.
             high_alpha=1e-3,
             frozen_path="",
             restore_epoch=1_000_000,
             num_actions_sampled = 8,
-            critic_latent_mix_prob=0.5,  # Probability to replace latents sampled from gaussian with backward representations.
+            critic_latent_mix_prob=0.5,  # Вероятность заменить случайное намерение реальным обратным представлением.
         )
     )
     return config

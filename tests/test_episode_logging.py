@@ -1,3 +1,5 @@
+"""Проверки корректности компонента episode logging и его взаимодействия со стендом."""
+
 import numpy as np
 from evaluation.logger import EpisodeLogger
 

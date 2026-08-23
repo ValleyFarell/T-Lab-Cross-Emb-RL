@@ -1,3 +1,5 @@
+"""Исходная процедура оценки агента в среде."""
+
 from collections import defaultdict
 import jax
 import jax.numpy as jnp
@@ -6,7 +8,7 @@ from tqdm import trange
 from utils.reward_configs import complex_rewards_maze, get_reward_cfg
 
 def supply_rng(f, rng=jax.random.PRNGKey(0)):
-    """Helper function to split the random number generator key before each call to the function."""
+    """Разделяет ключ случайности перед каждым вызовом функции."""
 
     def wrapped(*args, **kwargs):
         nonlocal rng
@@ -17,7 +19,7 @@ def supply_rng(f, rng=jax.random.PRNGKey(0)):
 
 
 def flatten(d, parent_key='', sep='.'):
-    """Flatten a dictionary."""
+    """Преобразует вложенный словарь в плоский набор именованных значений."""
     items = []
     for k, v in d.items():
         new_key = parent_key + sep + k if parent_key else k
@@ -29,7 +31,7 @@ def flatten(d, parent_key='', sep='.'):
 
 
 def add_to(dict_of_lists, single_dict):
-    """Append values to the corresponding lists in the dictionary."""
+    """Добавляет значения в соответствующие списки словаря."""
     for k, v in single_dict.items():
         dict_of_lists[k].append(v)
 
@@ -47,21 +49,20 @@ def evaluate(
     eval_gaussian=None,
     complex_task_name=None,
 ):
-    """Evaluate the agent in the environment.
+    """Оценивает политику на проверочных эпизодах среды.
 
-    Args:
-        agent: Agent.
-        env: Environment.
-        task_id: Task ID to be passed to the environment.
-        num_eval_episodes: Number of episodes to evaluate the agent.
-        num_video_episodes: Number of episodes to render. These episodes are not included in the statistics.
-        video_frame_skip: Number of frames to skip between renders.
-        inferred_latent: Latent to be used for evaluation (only for unsupervised algorithms).
-        eval_temperature: Action sampling temperature.
-        eval_gaussian: Standard deviation of the Gaussian noise to add to the actions.
-
-    Returns:
-        A tuple containing the statistics, trajectories, and rendered videos.
+    Параметры:
+        agent: параметр исходного вычисления.
+        env: экземпляр проверочной среды.
+        task_id: номер официальной задачи OGBench.
+        task_info: параметр исходного вычисления.
+        inferred_latent: параметр исходного вычисления.
+        num_eval_episodes: параметр исходного вычисления.
+        num_video_episodes: параметр исходного вычисления.
+        video_frame_skip: параметр исходного вычисления.
+        eval_temperature: параметр исходного вычисления.
+        eval_gaussian: параметр исходного вычисления.
+        complex_task_name: параметр исходного вычисления.
     """
     actor_fn = supply_rng(agent.sample_actions, rng=jax.random.PRNGKey(np.random.randint(0, 2**32)))
     trajs = []
@@ -106,7 +107,7 @@ def evaluate(
             next_observation, reward, terminated, truncated, info = env.step(action)
             step += 1
 
-            if complex_task_name is not None: # do not terminate general tasks
+            if complex_task_name is not None: # Не завершаем общие задачи раньше установленного правила.
                 done = truncated
             else:
                 done = terminated or truncated
@@ -117,11 +118,11 @@ def evaluate(
                     "xy_pos": next_observation[None,qpos_xy_start_idx : qpos_xy_start_idx + 2],
                     "xy_vel": next_observation[None,qvel_xy_start_idx : qvel_xy_start_idx + 2],
                     }
-                reward = complex_rewards_maze(env, next_observation_dict, task_id, complex_task_name)[0] # relabelling reward using true reward function
+                reward = complex_rewards_maze(env, next_observation_dict, task_id, complex_task_name)[0] # Пересчитываем награду исходной функцией текущей задачи.
                 
 
             if complex_task_name == 'regions' and not done_regions:
-                if reward > 1: # reached highest reward state
+                if reward > 1: # Достигнуто состояние с максимальной наградой.
                     done_regions = True
                     episode_info.update({
                         'to_goal_return': float(current_return),
@@ -130,7 +131,7 @@ def evaluate(
                         'in_goal_return': reward * (1000 - step),
                         'goal_reached': 1.0,
                     })
-                else:   # has not reached highest reward state yet
+                else:   # Состояние с максимальной наградой ещё не достигнуто.
                     episode_info.update({
                         'to_goal_return': float(current_return),
                         'to_goal_discounted_return': float(current_discounted_return),

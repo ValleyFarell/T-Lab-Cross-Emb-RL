@@ -1,4 +1,4 @@
-"""Reference downstream-task encoding for FB pi-Switch."""
+"""Построение представления конечной задачи по правилам исходного агента."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from .frozen_fb import FrozenFB
 
 
 class UnsupportedGoalError(RuntimeError):
-    """Raised when the zero-shot inference batch contains no positive rewards."""
+    """Сообщает, что в офлайн-выборке нет состояний с положительной наградой."""
 
 
 @dataclass(frozen=True)
@@ -32,7 +32,7 @@ class TaskEncoding:
 
 
 class TaskEncoder:
-    """Build z_r using the same validation-data path as official ``main.py``."""
+    """Строит представление конечной награды строго по правилам исходного агента."""
 
     def __init__(
         self,
@@ -56,17 +56,13 @@ class TaskEncoder:
         *,
         require_support: bool = True,
     ) -> TaskEncoding:
-        """Infer z_r for one official OGBench task id.
+        """Строит представление одной официальной задачи строго по исходному протоколу.
 
-        Important reference details preserved here:
-        * the environment is reset once before relabeling;
-        * rewards come from ``relabel_dataset``;
-        * the first N samples are used, not random samples;
-        * HGCDataset sampling disables relabeling and augmentation;
-        * ``agent.infer_latent`` is used unchanged.
+        Среда сначала сбрасывается на официальную цель, затем используются первые N офлайн-состояний и неизменённая функция infer_latent.
         """
 
         self._seed_action_space(0)
+        # Сначала восстанавливаем официальную цель, затем размечаем тот же фиксированный офлайн-набор.
         self.env.reset(seed=0, options={"task_id": int(task_id)})
         return self._encode_current_goal(
             task_id=int(task_id),
@@ -80,7 +76,7 @@ class TaskEncoder:
         *,
         require_support: bool = True,
     ) -> TaskEncoding:
-        """Infer a task latent for a validated custom maze goal."""
+        """Строит представление собственной пространственной цели лабиринта."""
 
         self._seed_action_space(0)
         self.env.reset(
@@ -108,7 +104,7 @@ class TaskEncoder:
         task_id: int | None,
         require_support: bool,
     ) -> TaskEncoding:
-        """Relabel the fixed inference batch for the environment's current goal."""
+        """Размечает фиксированную офлайн-выборку для текущей цели среды."""
 
         relabeled = relabel_dataset(
             self.env_name,
@@ -125,6 +121,7 @@ class TaskEncoder:
                 f"but reference inference requests {num_samples}."
             )
 
+        # Берём первые N состояний: случайная подвыборка изменила бы представление задачи.
         batch = relabeled.sample(
             num_samples,
             idxs=np.arange(num_samples),
@@ -143,6 +140,7 @@ class TaskEncoder:
             num_positive=num_positive,
             num_samples=num_samples,
         )
+        # Нулевая поддержка цели дала бы бессодержательное намерение, поэтому останавливаем запуск явно.
         if require_support and not result.supported:
             task_name = f"Task {task_id}" if task_id is not None else "Custom goal"
             raise UnsupportedGoalError(

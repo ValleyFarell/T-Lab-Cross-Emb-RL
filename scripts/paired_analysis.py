@@ -1,4 +1,4 @@
-"""Compare a candidate method with the baseline on matched scenario seeds."""
+"""Парное сравнение нового метода с исходным на одинаковых сценариях."""
 
 from __future__ import annotations
 
@@ -11,15 +11,16 @@ from evaluation.paired import collect_paired_records, compare_paired
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--baseline-dir", type=Path, required=True)
-    parser.add_argument("--candidate-dir", type=Path, required=True)
+    parser.add_argument("--baseline-dir", type=Path, required=True, help='Каталог эпизодов исходного метода.')
+    parser.add_argument("--candidate-dir", type=Path, required=True, help='Каталог эпизодов исследуемого метода.')
     parser.add_argument(
         "--output",
         type=Path,
         default=Path("results/paired_comparison.json"),
+    help='Путь к сохраняемому изображению или итоговому JSON-файлу.',
     )
-    parser.add_argument("--bootstrap-seed", type=int, default=0)
-    parser.add_argument("--bootstrap-samples", type=int, default=10_000)
+    parser.add_argument("--bootstrap-seed", type=int, default=0, help='Воспроизводимая случайность построения этих выборок.')
+    parser.add_argument("--bootstrap-samples", type=int, default=10_000, help='Число повторных случайных выборок для доверительного интервала.')
     return parser.parse_args()
 
 

@@ -1,4 +1,4 @@
-"""Controller adapter for H0-B adaptive switching depth."""
+"""Адаптер H0-B, выбирающего между одной и двумя подцелями."""
 
 from .two_switch import TwoSwitchController
 

@@ -1,4 +1,4 @@
-"""H0: receding-horizon two-switch planning."""
+"""H0: динамическое планирование маршрута через две подцели."""
 
 from .planner import TwoSwitchPlanner, TwoSwitchSelection
 

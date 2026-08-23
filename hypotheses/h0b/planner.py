@@ -1,9 +1,4 @@
-"""Adaptive-depth extension of H0.
-
-The planner evaluates the best supported one-switch plan and the best
-supported two-switch plan on the same value scale.  It executes the first
-subgoal of the larger estimate.  Exact ties prefer depth one.
-"""
+"""Выбор глубины плана по сопоставимым оценкам H0."""
 
 from __future__ import annotations
 
@@ -14,7 +9,7 @@ from hypotheses.h0.planner import TwoSwitchPlanner, TwoSwitchSelection
 
 
 class AdaptiveSwitchPlanner(TwoSwitchPlanner):
-    """Choose planning depth ``d in {1, 2}`` at every replanning step."""
+    """Выбирает между маршрутами через одну и две промежуточные цели."""
 
     def experiment_config(self):
         config = super().experiment_config()
@@ -29,16 +24,16 @@ class AdaptiveSwitchPlanner(TwoSwitchPlanner):
         return config
 
     def score_depths(self, observation, goal_latent):
-        """Return ``(V1[K], V2[K,K])`` on one common absolute-value scale."""
+        """Сравнивает планы через одну и две подцели на общей шкале ценности."""
 
         _, details = self._evaluate_pairs(observation, goal_latent)
         one_values = details["one_switch_values"]
         two_values = details["two_switch_values"]
 
-        # Embed every depth-1 plan as the diagonal depth-2 fallback.  This
-        # makes the estimated plan classes nested exactly, instead of relying
-        # on two separately evaluated neural-network expressions being equal
-        # up to floating-point noise.
+        # Помещаем каждый план глубины один на диагональ матрицы глубины два.
+        # Так классы планов действительно вложены и не зависят
+        # от случайного равенства двух отдельно вычисленных выражений
+        # с небольшой ошибкой округления чисел с плавающей точкой.
         diagonal = jnp.eye(self.candidate_count, dtype=bool)
         two_values = jnp.where(diagonal, one_values[:, None], two_values)
         details["two_switch_values"] = two_values
@@ -73,8 +68,9 @@ class AdaptiveSwitchPlanner(TwoSwitchPlanner):
             best_two_i, best_two_j = -1, -1
             best_two_value = -np.inf
 
-        # Exact ties use the shallower plan.  No unreported depth bonus or
-        # complexity penalty is introduced into the scientific objective.
+        # При равенстве оценок выбираем меньшую глубину без скрытого бонуса
+        # или дополнительного штрафа за сложность маршрута.
+        # При равенстве оставляем более короткий маршрут без скрытого бонуса за глубину.
         if best_one_value >= best_two_value:
             selected_depth = 1
             i, j = best_one_index, -1

@@ -1,3 +1,5 @@
+"""Средства запуска и восстановления неизменённого исходного агента."""
+
 from .frozen_fb import FrozenFB, load_checkpoint_config
 from .task_encoder import TaskEncoder, TaskEncoding, UnsupportedGoalError
 

@@ -1,4 +1,4 @@
-"""Paired comparison of two methods on identical evaluation scenarios."""
+"""Строго парное сравнение методов на совпадающих сценариях."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ def _load_json(path: Path) -> dict:
 
 
 def _scenario_key(record: dict) -> tuple:
-    """Return the fields that must be identical for a valid pair."""
+    """Собирает признаки сценария, которые обязаны совпадать при парном анализе."""
 
     return (
         record.get("scenario_id"),
@@ -29,7 +29,7 @@ def _scenario_key(record: dict) -> tuple:
 
 
 def collect_paired_records(results_dir: str | Path) -> dict[tuple, dict]:
-    """Load one record per scenario, rejecting accidental duplicate runs."""
+    """Собирает по одной записи сценария и отклоняет повторяющиеся запуски."""
 
     records = {}
     for summary_path in sorted(Path(results_dir).rglob("summary.json")):
@@ -85,7 +85,7 @@ def _bootstrap_mean_ci(
 
 
 def _mcnemar_exact_p(baseline_only: int, candidate_only: int) -> float | None:
-    """Two-sided exact McNemar test over discordant success pairs."""
+    """Вычисляет двусторонний точный тест Мак-Немара для несовпадающих исходов."""
 
     discordant = baseline_only + candidate_only
     if discordant == 0:
@@ -185,7 +185,7 @@ def compare_paired(
     bootstrap_seed: int = 0,
     bootstrap_samples: int = 10_000,
 ) -> dict:
-    """Compare two methods using only their exact scenario intersection."""
+    """Сравнивает методы только на точном пересечении их сценариев."""
 
     if bootstrap_samples <= 0:
         raise ValueError("bootstrap_samples must be positive.")

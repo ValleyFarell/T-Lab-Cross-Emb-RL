@@ -1,3 +1,5 @@
+"""Исходный агент FB π-Switch с высокоуровневым переключением намерений."""
+
 from typing import Any
 import os
 import json
@@ -13,9 +15,7 @@ from utils.networks import GCActor, GCValue
 from agents.fbpiswitch_nonhierarchical import FBpiSwitchNonHierarchicalAgent
 
 class FBpiSwitchAgent(flax.struct.PyTreeNode):
-    """
-        FB pi-Switch agent trained from frozen parameters of learned representation and low-level policy.
-    """
+    """Использует высокоуровневое переключение поверх замороженных FB-представлений."""
 
     rng: Any
     network: Any
@@ -31,7 +31,7 @@ class FBpiSwitchAgent(flax.struct.PyTreeNode):
         FBpiSwitchNonHierarchical = FBpiSwitchNonHierarchicalAgent.create(FLAGS.seed, example_batch, frozen_config)
         FBpiSwitchNonHierarchical = restore_agent(FBpiSwitchNonHierarchical, config['frozen_path'], config['restore_epoch'])
         
-        # Unfreeze parameters to modify
+        # Временно открываем параметры для изменения.
         agent_params = flax.core.unfreeze(self.network.params)
         frozen_params = flax.core.unfreeze(FBpiSwitchNonHierarchical.network.params)
         
@@ -39,7 +39,7 @@ class FBpiSwitchAgent(flax.struct.PyTreeNode):
             if module_name in ['modules_backward_repr', 'modules_forward_repr', 'modules_actor']:
                 agent_params[module_name] = frozen_params[module_name]
                 
-        # Freeze back
+        # Снова запрещаем изменение параметров.
         agent = self.replace(network=self.network.replace(params=agent_params))      
         return agent
     
@@ -47,7 +47,7 @@ class FBpiSwitchAgent(flax.struct.PyTreeNode):
         return z / (jnp.linalg.norm(z, axis=-1, keepdims=True) + 1e-8) * jnp.sqrt(self.config['latent_dim'])
     
     def successor_measure_extract(self, observations, z_goals, z_intents, module='forward_repr'):
-        # module is either "forward_repr" or "target_forward_repr"
+        # Модуль является текущим или целевым прямым представлением.
         z_intents = self.normalize_z(z_intents)
         forward_reps = self.network.select(module)(observations, z_intents, goal_encoded=True)
         return jnp.sum(forward_reps * z_goals[None, :, :], axis=-1)
@@ -55,7 +55,7 @@ class FBpiSwitchAgent(flax.struct.PyTreeNode):
 
 
     def high_actor_loss(self, batch, grad_params, rng): 
-        """Compute the high-level actor loss."""
+        """Вычисляет функцию потерь высокоуровневой политики намерений."""
         obs = batch['observations']
         subgoals = batch['high_actor_targets']   
         goals = batch['high_actor_goals']
@@ -98,7 +98,7 @@ class FBpiSwitchAgent(flax.struct.PyTreeNode):
     
     @jax.jit
     def total_loss(self, batch, grad_params, rng=None):
-        """Compute the total loss."""
+        """Собирает общую функцию потерь всех обучаемых компонентов."""
         info = {}
         rng = rng if rng is not None else self.rng
         rng, high_actor_rng = jax.random.split(rng, 2)
@@ -112,7 +112,7 @@ class FBpiSwitchAgent(flax.struct.PyTreeNode):
 
     @jax.jit
     def update(self, batch):
-        """Update the agent and return a new agent with information dictionary."""
+        """Обновляет агента и возвращает новое состояние вместе с диагностикой."""
         new_rng, rng = jax.random.split(self.rng)
 
         def loss_fn(grad_params):
@@ -125,14 +125,14 @@ class FBpiSwitchAgent(flax.struct.PyTreeNode):
 
     @jax.jit
     def infer_latent(self, batch):
-        """Infer the latent variable using rewards on downstream tasks."""
+        """Строит представление конечной задачи по наградам офлайн-состояний."""
         observations = batch['observations']
         rewards = batch['rewards']
         weights = jax.nn.softmax(self.config['reward_temperature'] * rewards, axis=0)
         
         backward_reprs = self.network.select('backward_repr')(observations)
         
-        # reward-weighted average
+        # Среднее представление состояний, взвешенное по награде.
         latent = jnp.mean((weights * rewards)[..., None] * backward_reprs, axis=0)
         if self.config['normalize_latent']:
             latent = self.normalize_z(latent)
@@ -142,7 +142,7 @@ class FBpiSwitchAgent(flax.struct.PyTreeNode):
     
     @jax.jit
     def sample_latents(self, targets, rng, latent_mix_prob):
-        """Sample latent variables and intrinsic rewards."""
+        """Формирует намерения и связанные внутренние награды."""
         batch_size = targets.shape[0]
         
         rng, latent_rng, mix_rng = jax.random.split(rng, 3)
@@ -164,7 +164,7 @@ class FBpiSwitchAgent(flax.struct.PyTreeNode):
 
     @jax.jit
     def sample_actions(self, observations, latents=None, seed=None, temperature=1.0):
-        """Sample actions from the actor."""
+        """Выбирает действие исходной политики по состоянию и намерению."""
 
         high_seed, low_seed = jax.random.split(seed)
 
@@ -181,12 +181,12 @@ class FBpiSwitchAgent(flax.struct.PyTreeNode):
         
     @classmethod
     def create(cls, seed, ex_batch, config):
-        """Create a new agent.
+        """Создаёт экземпляр агента или структуры данных с заданной конфигурацией.
 
-        Args:
-            seed: Random seed.
-            ex_batch: Example batch.
-            config: Configuration dictionary.
+        Параметры:
+            seed: начальное значение генератора случайных чисел.
+            ex_batch: пример блока переходов.
+            config: конфигурация агента или вспомогательной модели.
         """
         rng = jax.random.PRNGKey(seed)
         rng, init_rng = jax.random.split(rng, 2)
@@ -196,7 +196,7 @@ class FBpiSwitchAgent(flax.struct.PyTreeNode):
         action_dim = ex_actions.shape[-1]
         ex_latents = jnp.ones((*ex_actions.shape[:-1], config['latent_dim']))
 
-        # Define networks.
+        # Создаём вычислительные сети агента.
         forward_repr_def = GCValue(
             hidden_dims=config['forward_repr_hidden_dims'],
             value_dim=config['latent_dim'],
@@ -220,7 +220,7 @@ class FBpiSwitchAgent(flax.struct.PyTreeNode):
         )
 
 
-        # Trainable new modules
+        # Новые модули, параметры которых разрешено обучать.
         high_actor_def = GCActor(
             hidden_dims=config['actor_hidden_dims'],
             action_dim=config['latent_dim'],
@@ -234,7 +234,7 @@ class FBpiSwitchAgent(flax.struct.PyTreeNode):
             backward_repr=(backward_repr_def, (ex_observations,)),
             actor=(actor_def, (ex_observations, ex_latents, True)),
             
-            # Trainable new modules
+            # Новые модули, параметры которых разрешено обучать.
             high_actor=(high_actor_def, (ex_observations, ex_latents, True)),
         )
         
@@ -242,7 +242,7 @@ class FBpiSwitchAgent(flax.struct.PyTreeNode):
             flat = flax.traverse_util.flatten_dict(params)
             mask = {}
             for k in flat:
-                module_name = k[0]  # e.g. 'modules_forward_repr'
+                module_name = k[0]  # Например: modules_forward_repr.
         
                 if module_name in [
                     'modules_high_actor',
@@ -275,48 +275,48 @@ class FBpiSwitchAgent(flax.struct.PyTreeNode):
 def get_config():
     config = ml_collections.ConfigDict(
         dict(
-            agent_name='fbpiswitch',  # Agent name.
-            lr=3e-4,  # Learning rate.
-            batch_size=1024,  # Batch size.
-            actor_hidden_dims=(512, 512, 512),  # Actor network hidden dimensions.
-            forward_repr_hidden_dims=(512, 512, 512),  # Forward representation network hidden dimensions.
-            backward_repr_hidden_dims=(512, 512, 512),  # Backward representation network hidden dimension.
-            actor_layer_norm=False,  # Whether to use layer normalization for the actor.
-            forward_repr_layer_norm=True,  # Whether to use layer normalization for the forward representations.
-            backward_repr_layer_norm=True,  # Whether to use layer normalization for the backward representations.
-            activation='gelu',  # Activation function.
-            discount=0.99,  # Discount factor.
-            tau=0.005,  # Target network update rate.
-            expectile=0.7,  # IQL expectile.
-            alpha=3.0,  # Low-level AWR temperature.
-            const_std=True,  # Whether to use constant standard deviation for the actors.
+            agent_name='fbpiswitch',  # Название реализации агента.
+            lr=3e-4,  # Шаг обновления обучаемых параметров.
+            batch_size=1024,  # Количество примеров в одном обучающем блоке.
+            actor_hidden_dims=(512, 512, 512),  # Размеры скрытых слоёв сети политики.
+            forward_repr_hidden_dims=(512, 512, 512),  # Размеры скрытых слоёв прямого представления F.
+            backward_repr_hidden_dims=(512, 512, 512),  # Размеры скрытых слоёв обратного представления B.
+            actor_layer_norm=False,  # Использовать ли нормализацию слоёв политики.
+            forward_repr_layer_norm=True,  # Использовать ли нормализацию слоёв прямого представления.
+            backward_repr_layer_norm=True,  # Использовать ли нормализацию слоёв обратного представления.
+            activation='gelu',  # Функция активации нейронной сети.
+            discount=0.99,  # Коэффициент дисконтирования будущих состояний.
+            tau=0.005,  # Скорость плавного обновления целевой сети.
+            expectile=0.7,  # Коэффициент асимметрии оценки функции ценности.
+            alpha=3.0,  # Температура взвешивания действий низкоуровневой политики.
+            const_std=True,  # Использовать ли постоянный разброс действий обеих политик.
             
-            # Dataset hyperparameters.
-            dataset_class='HGCDataset',  # Dataset class name.
-            value_p_curgoal=0.2,  # Probability of using the current state as the value goal.
-            value_p_trajgoal=0.5,  # Probability of using a future state in the same trajectory as the value goal.
-            value_p_randomgoal=0.3,  # Probability of using a random state as the value goal.
-            value_geom_sample=True,  # Whether to use geometric sampling for future value goals.
-            actor_p_curgoal=0.0,  # Probability of using the current state as the actor goal.
-            actor_p_trajgoal=1.0,  # Probability of using a future state in the same trajectory as the actor goal.
-            actor_p_randomgoal=0.0,  # Probability of using a random state as the actor goal.
-            actor_geom_sample=False,  # Whether to use geometric sampling for future actor goals.
-            gc_negative=False,  # Whether to use '0 if s == g else -1' (True) or '1 if s == g else 0' (False) as reward.
-            p_aug=0.0,  # Probability of applying image augmentation.
-            frame_stack=ml_collections.config_dict.placeholder(int),  # Number of frames to stack.
-            # tanh_squash=True,  # Whether to use tanh squash for the actor.
-            reward_temperature=0.0,  # Reward weight temperature.
+            # Настройки подготовки офлайн-набора данных.
+            dataset_class='HGCDataset',  # Имя класса используемого набора данных.
+            value_p_curgoal=0.2,  # Вероятность выбрать текущее состояние целью оценки ценности.
+            value_p_trajgoal=0.5,  # Вероятность выбрать будущую точку той же траектории целью ценности.
+            value_p_randomgoal=0.3,  # Вероятность выбрать случайное состояние целью ценности.
+            value_geom_sample=True,  # Использовать ли геометрическое распределение для будущих целей ценности.
+            actor_p_curgoal=0.0,  # Вероятность выбрать текущее состояние целью политики.
+            actor_p_trajgoal=1.0,  # Вероятность выбрать будущую точку той же траектории целью политики.
+            actor_p_randomgoal=0.0,  # Вероятность выбрать случайное состояние целью политики.
+            actor_geom_sample=False,  # Использовать ли геометрическое распределение для будущих целей политики.
+            gc_negative=False,  # Выбор схемы награды: 0 при успехе и -1 иначе либо 1 при успехе и 0 иначе.
+            p_aug=0.0,  # Вероятность случайного преобразования изображения.
+            frame_stack=ml_collections.config_dict.placeholder(int),  # Количество объединяемых последовательных кадров.
+            # Сохранённый вариант: tanh_squash=True, — Ограничивать ли действия политики функцией tanh.
+            reward_temperature=0.0,  # Температура весов, определяемых наградой.
             num_zero_shot_samples = 100_000,
 
 
-            # FB pi-Switch specific hyperparameters.
-            relabeling=True,  # Whether to relabel rewards.
-            latent_dim=128,  # Embedding dimension for FB representation
-            normalize_latent=True,  # Whether to normalize backward representations.
-            orthonorm_coeff=1e-3,  # orthonormalization coefficient
-            actor_latent_mix_prob=0.5,  # Probability to replace latents sampled from gaussian with backward representations.
+            # Специальные настройки метода FB π-Switch.
+            relabeling=True,  # Пересчитывать ли награды для выбранной цели.
+            latent_dim=128,  # Размерность скрытого FB-представления.
+            normalize_latent=True,  # Нормализовать ли обратные представления состояний.
+            orthonorm_coeff=1e-3,  # Коэффициент регуляризации ортонормальности.
+            actor_latent_mix_prob=0.5,  # Вероятность заменить случайное намерение реальным обратным представлением.
             high_alpha=0.1,
-            critic_latent_mix_prob=0.5,  # Probability to replace latents sampled from gaussian with backward representations.
+            critic_latent_mix_prob=0.5,  # Вероятность заменить случайное намерение реальным обратным представлением.
             frozen_path="",
             restore_epoch=1_000_000,
         )

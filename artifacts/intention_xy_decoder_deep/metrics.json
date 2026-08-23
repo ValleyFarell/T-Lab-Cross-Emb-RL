@@ -1,0 +1,26 @@
+{
+  "train": {
+    "rmse_xy": 0.47424593567848206,
+    "mae_x": 0.3698467016220093,
+    "mae_y": 0.324537068605423,
+    "mean_euclidean_error": 0.5472684502601624,
+    "median_euclidean_error": 0.4627801775932312,
+    "p90_euclidean_error": 1.027176022529602
+  },
+  "validation": {
+    "rmse_xy": 0.7046428322792053,
+    "mae_x": 0.49675557017326355,
+    "mae_y": 0.432427316904068,
+    "mean_euclidean_error": 0.730480968952179,
+    "median_euclidean_error": 0.558600127696991,
+    "p90_euclidean_error": 1.376538634300232
+  },
+  "test": {
+    "rmse_xy": 0.9550995230674744,
+    "mae_x": 0.602828323841095,
+    "mae_y": 0.5360987782478333,
+    "mean_euclidean_error": 0.8941733241081238,
+    "median_euclidean_error": 0.5974240303039551,
+    "p90_euclidean_error": 1.84071946144104
+  }
+}

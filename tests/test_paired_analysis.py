@@ -1,3 +1,5 @@
+"""Проверки корректности компонента paired analysis и его взаимодействия со стендом."""
+
 import json
 
 import pytest

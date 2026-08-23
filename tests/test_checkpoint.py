@@ -1,4 +1,4 @@
-"""Checkpoint structure and restored-network smoke tests."""
+"""Проверки корректности компонента checkpoint и его взаимодействия со стендом."""
 
 from __future__ import annotations
 

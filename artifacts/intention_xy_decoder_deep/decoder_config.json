@@ -1,0 +1,30 @@
+{
+  "model": "intention_xy_probe",
+  "architecture": [
+    128,
+    256,
+    128,
+    2
+  ],
+  "activation": "gelu",
+  "latent_definition": "normalize(B(observation))",
+  "target_definition": "observation[:2]",
+  "checkpoint": "checkpoints\\antmaze-medium-navigate-v0",
+  "environment": "ogbench-antmaze-medium-navigate-v0",
+  "seed": 1,
+  "split_strategy": "trajectory",
+  "split_sizes": {
+    "train": 240001,
+    "validation": 30000,
+    "test": 29999
+  },
+  "optimizer": "adam_with_global_gradient_clipping",
+  "learning_rate": 0.0003,
+  "learning_rate_schedule": "linear_warmup_then_cosine_decay",
+  "batch_size": 1024,
+  "max_epochs": 1000,
+  "patience": 50,
+  "weight_decay": 1e-05,
+  "warmup_epochs": 5,
+  "gradient_clip_norm": 1.0
+}

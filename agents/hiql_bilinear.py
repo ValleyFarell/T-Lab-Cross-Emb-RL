@@ -1,3 +1,5 @@
+"""Агент с билинейной моделью ценности и целевой политикой."""
+
 from typing import Any
 import flax
 import flax.linen as nn
@@ -11,27 +13,20 @@ from utils.networks import GCActor, MLP, LengthNormalize, GCBilinearValue
 
 
 class HIQLBilinearAgent(flax.struct.PyTreeNode):
-    """Hierarchical implicit Q-learning (HIQL) without hierarchy and with bilinear structure"""
+    """Использует билинейную оценку ценности без отдельной иерархии."""
     rng: Any
     network: Any
     config: Any = nonpytree_field()
 
     @staticmethod
     def expectile_loss(adv, diff, expectile):
-        """Compute the expectile loss."""
+        """Вычисляет асимметричную функцию потерь оценки ценности."""
         weight = jnp.where(adv >= 0, expectile, (1 - expectile))
         return weight * (diff**2)
 
 
     def value_loss(self, batch, grad_params):
-        """Compute the IVL value loss.
-
-        This value loss is similar to the original IQL value loss, but involves additional tricks to stabilize training.
-        For example, when computing the expectile loss, we separate the advantage part (which is used to compute the
-        weight) and the difference part (which is used to compute the loss), where we use the target value function to
-        compute the former and the current value function to compute the latter. This is similar to how double DQN
-        mitigates overestimation bias.
-        """
+        """Вычисляет функцию потерь модели ценности."""
         (next_v1_t, next_v2_t) = self.network.select('target_value')(batch['next_observations'], batch['value_goals'])
         next_v_t = jnp.minimum(next_v1_t, next_v2_t)
         q = batch['rewards'] + self.config['discount'] * next_v_t
@@ -59,7 +54,7 @@ class HIQLBilinearAgent(flax.struct.PyTreeNode):
     
 
     def actor_loss(self, batch, grad_params):
-        """Compute the actor loss (AWR)."""
+        """Вычисляет функцию потерь обучаемой политики действий."""
         """ Here we use high_actor_goals since those are sampled uniformly in 
         trajectory after current state with probability 1-actor_p_randomgoal and
         random with probability actor_p_randomgoal
@@ -69,7 +64,7 @@ class HIQLBilinearAgent(flax.struct.PyTreeNode):
         v = (v1 + v2) / 2
         nv = (nv1 + nv2) / 2
         adv = jax.lax.stop_gradient(nv - v)
-        # exp_a = jnp.exp(jnp.clip(adv * self.config['alpha'], a_max=5.0))
+        # Ранее использовавшийся вариант: exp_a = jnp.exp(jnp.clip(adv * self.config['alpha'], a_max=5.0))
         exp_a = jnp.exp(jnp.clip(adv * self.config['alpha'], max=5.0))
 
         goal_reps = self.network.select('goal_rep')(batch['actor_goals'], params=grad_params)
@@ -90,7 +85,7 @@ class HIQLBilinearAgent(flax.struct.PyTreeNode):
 
     @jax.jit
     def total_loss(self, batch, grad_params, rng=None):
-        """Compute the total loss."""
+        """Собирает общую функцию потерь всех обучаемых компонентов."""
         info = {}
 
         value_loss, value_info = self.value_loss(batch, grad_params)
@@ -106,7 +101,7 @@ class HIQLBilinearAgent(flax.struct.PyTreeNode):
 
 
     def target_update(self, network, module_name):
-        """Update the target network."""
+        """Плавно обновляет параметры целевой нейронной сети."""
         new_target_params = jax.tree_util.tree_map(
             lambda p, tp: p * self.config['tau'] + tp * (1 - self.config['tau']),
             self.network.params[f'modules_{module_name}'],
@@ -117,7 +112,7 @@ class HIQLBilinearAgent(flax.struct.PyTreeNode):
 
     @jax.jit
     def update(self, batch):
-        """Update the agent and return a new agent with information dictionary."""
+        """Обновляет агента и возвращает новое состояние вместе с диагностикой."""
         new_rng, rng = jax.random.split(self.rng)
 
         def loss_fn(grad_params):
@@ -131,7 +126,7 @@ class HIQLBilinearAgent(flax.struct.PyTreeNode):
 
     @jax.jit
     def sample_actions(self, observations, goals=None, seed=None, temperature=1.0):
-        """Sample actions from the actor."""
+        """Выбирает действие исходной политики по состоянию и намерению."""
         goal_reps = self.network.select('goal_rep')(goals)
         dist = self.network.select('actor')(observations, goal_reps, goal_encoded=True, temperature=temperature)
 
@@ -141,13 +136,12 @@ class HIQLBilinearAgent(flax.struct.PyTreeNode):
 
     @classmethod
     def create(cls, seed, ex_batch, config):
-        """Create a new agent.
+        """Создаёт экземпляр агента или структуры данных с заданной конфигурацией.
 
-        Args:
-            seed: Random seed.
-            ex_observations: Example batch of observations.
-            ex_actions: Example batch of actions. In discrete-action MDPs, this should contain the maximum action value.
-            config: Configuration dictionary.
+        Параметры:
+            seed: начальное значение генератора случайных чисел.
+            ex_batch: пример блока переходов.
+            config: конфигурация агента или вспомогательной модели.
         """
         rng = jax.random.PRNGKey(seed)
         rng, init_rng = jax.random.split(rng, 2)
@@ -170,7 +164,7 @@ class HIQLBilinearAgent(flax.struct.PyTreeNode):
         value_encoder = GCEncoder(state_encoder=goal_rep_def)
         target_value_encoder = GCEncoder(state_encoder=goal_rep_def)
         
-        # Define value and actor networks.
+        # Создаём сети ценности и политики.
             
         value_def = GCBilinearValue(
             hidden_dims=config['value_hidden_dims'],
@@ -220,37 +214,37 @@ class HIQLBilinearAgent(flax.struct.PyTreeNode):
 def get_config():
     config = ml_collections.ConfigDict(
         dict(
-            # Agent hyperparameters.
+            # Настройки обучения и архитектуры агента.
             
-            agent_name='iqlbilinear',  # Agent name.
-            lr=3e-4,  # Learning rate.
-            batch_size=1024,  # Batch size.
-            actor_hidden_dims=(512, 512, 512),  # Actor network hidden dimensions.
-            value_hidden_dims=(512, 512, 512),  # Value network hidden dimensions.
-            layer_norm=True,  # Whether to use layer normalization.
-            discount=0.99,  # Discount factor.
-            tau=0.005,  # Target network update rate.
-            expectile=0.7,  # IQL expectile.
-            alpha=3.0,  # Temperature in AWR or BC coefficient in DDPG+BC.
-            const_std=True,  # Whether to use constant standard deviation for the actor.
+            agent_name='iqlbilinear',  # Название реализации агента.
+            lr=3e-4,  # Шаг обновления обучаемых параметров.
+            batch_size=1024,  # Количество примеров в одном обучающем блоке.
+            actor_hidden_dims=(512, 512, 512),  # Размеры скрытых слоёв сети политики.
+            value_hidden_dims=(512, 512, 512),  # Размеры скрытых слоёв модели ценности.
+            layer_norm=True,  # Использовать ли нормализацию скрытых слоёв.
+            discount=0.99,  # Коэффициент дисконтирования будущих состояний.
+            tau=0.005,  # Скорость плавного обновления целевой сети.
+            expectile=0.7,  # Коэффициент асимметрии оценки функции ценности.
+            alpha=3.0,  # Температура взвешивания действий либо вес воспроизведения офлайн-политики.
+            const_std=True,  # Использовать ли постоянный разброс действий политики.
            
-            # Dataset hyperparameters.
-            dataset_class='GCDataset',  # Dataset class name.
-            relabeling=True,  # Whether to relabel rewards.
-            value_p_curgoal=0.2,  # Probability of using the current state as the value goal.
-            value_p_trajgoal=0.5,  # Probability of using a future state in the same trajectory as the value goal.
-            value_p_randomgoal=0.3,  # Probability of using a random state as the value goal.
-            value_geom_sample=True,  # Whether to use geometric sampling for future value goals.
-            actor_p_curgoal=0.2,  # Probability of using the current state as the actor goal.
-            actor_p_trajgoal=0.5,  # Probability of using a future state in the same trajectory as the actor goal.
-            actor_p_randomgoal=0.3,  # Probability of using a random state as the actor goal.
-            actor_geom_sample=False,  # Whether to use geometric sampling for future actor goals.
-            gc_negative=False,  # Whether to use '0 if s == g else -1' (True) or '1 if s == g else 0' (False) as reward.
-            p_aug=0.0,  # Probability of applying image augmentation.
-            frame_stack=ml_collections.config_dict.placeholder(int),  # Number of frames to stack.
+            # Настройки подготовки офлайн-набора данных.
+            dataset_class='GCDataset',  # Имя класса используемого набора данных.
+            relabeling=True,  # Пересчитывать ли награды для выбранной цели.
+            value_p_curgoal=0.2,  # Вероятность выбрать текущее состояние целью оценки ценности.
+            value_p_trajgoal=0.5,  # Вероятность выбрать будущую точку той же траектории целью ценности.
+            value_p_randomgoal=0.3,  # Вероятность выбрать случайное состояние целью ценности.
+            value_geom_sample=True,  # Использовать ли геометрическое распределение для будущих целей ценности.
+            actor_p_curgoal=0.2,  # Вероятность выбрать текущее состояние целью политики.
+            actor_p_trajgoal=0.5,  # Вероятность выбрать будущую точку той же траектории целью политики.
+            actor_p_randomgoal=0.3,  # Вероятность выбрать случайное состояние целью политики.
+            actor_geom_sample=False,  # Использовать ли геометрическое распределение для будущих целей политики.
+            gc_negative=False,  # Выбор схемы награды: 0 при успехе и -1 иначе либо 1 при успехе и 0 иначе.
+            p_aug=0.0,  # Вероятность случайного преобразования изображения.
+            frame_stack=ml_collections.config_dict.placeholder(int),  # Количество объединяемых последовательных кадров.
        
-            # IQL bilinear specific hyperparameters.
-            latent_dim = 128,  # Embedding dimension for FB representation
+            # Специальные настройки билинейной модели ценности.
+            latent_dim = 128,  # Размерность скрытого FB-представления.
        )
     )
     return config

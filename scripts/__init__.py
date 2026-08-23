@@ -1,1 +1,3 @@
-# Run with: python -m scripts.run_baseline
+"""Точки входа для экспериментов, обучения вспомогательных моделей и анализа."""
+
+# Пример запуска: python -m scripts.run_baseline.

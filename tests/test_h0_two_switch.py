@@ -1,4 +1,4 @@
-"""Contract tests for H0 and its boundaries with the shared stand."""
+"""Проверки корректности компонента h0 two switch и его взаимодействия со стендом."""
 
 from __future__ import annotations
 

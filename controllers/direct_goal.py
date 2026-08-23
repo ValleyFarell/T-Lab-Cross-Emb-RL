@@ -1,4 +1,4 @@
-"""Diagnostic controller that bypasses the learned high-level actor."""
+"""Диагностический контроллер прямого целевого намерения."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from .base import HighLevelController, IntentionSelection
 
 
 class DirectGoalController(HighLevelController):
-    """Pass the normalized downstream-task latent directly to the low actor."""
+    """Передаёт целевое намерение напрямую низкоуровневой политике."""
 
     method_name = "fb_direct_goal"
 

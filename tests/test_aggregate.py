@@ -1,3 +1,5 @@
+"""Проверки корректности компонента aggregate и его взаимодействия со стендом."""
+
 
 from evaluation.aggregate import aggregate
 

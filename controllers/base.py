@@ -1,4 +1,4 @@
-"""Common high-level controller interface."""
+"""Общий интерфейс контроллеров и формат выбранного намерения."""
 
 from __future__ import annotations
 
@@ -14,20 +14,15 @@ class IntentionSelection:
 
 
 class HighLevelController(ABC):
-    """Stable boundary between a hypothesis and the evaluation pipeline.
-
-    A controller may expose any numeric per-step diagnostics, but it must keep
-    the same diagnostic keys for every step in an episode.  Static,
-    JSON-serializable method parameters belong in ``experiment_config``.
-    """
+    """Определяет общий контракт между планировщиком и запуском эпизода."""
 
     method_name: str
 
     def reset(self, scenario=None) -> None:
-        """Reset method-specific episode state."""
+        """Сбрасывает внутреннее состояние контроллера перед новым эпизодом."""
 
     def experiment_config(self) -> Mapping[str, Any]:
-        """Return method-specific, JSON-serializable experiment metadata."""
+        """Возвращает сохраняемые параметры и происхождение данных метода."""
 
         return {}
 
@@ -40,5 +35,5 @@ class HighLevelController(ABC):
         rng,
         temperature: float,
     ) -> IntentionSelection:
-        """Return the one intention that should be executed now."""
+        """Возвращает единственное намерение, которое должно исполняться сейчас."""
 

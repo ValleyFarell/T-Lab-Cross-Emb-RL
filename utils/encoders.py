@@ -1,3 +1,5 @@
+"""Энкодеры состояний, целей и намерений для исходных сетей."""
+
 import functools
 from typing import Sequence
 
@@ -8,7 +10,7 @@ from utils.networks import MLP
 
 
 class ResnetStack(nn.Module):
-    """ResNet stack module."""
+    """Объединяет несколько остаточных сверточных блоков."""
 
     num_features: int
     num_blocks: int
@@ -16,7 +18,7 @@ class ResnetStack(nn.Module):
 
     @nn.compact
     def __call__(self, x):
-        """Returns the features of images."""
+        """Вычисляет результат модуля для переданных входных данных."""
         initializer = nn.initializers.xavier_uniform()
         conv_out = nn.Conv(
             features=self.num_features,
@@ -59,7 +61,7 @@ class ResnetStack(nn.Module):
 
 
 class ImpalaEncoder(nn.Module):
-    """IMPALA encoder."""
+    """Кодирует изображения сверточной архитектурой IMPALA."""
 
     width: int = 1
     stack_sizes: tuple = (16, 32, 32)
@@ -69,7 +71,7 @@ class ImpalaEncoder(nn.Module):
     layer_norm: bool = False
 
     def setup(self):
-        """Set up the network blocks and dropouts."""
+        """Создаёт вычислительные блоки и настройки нейронной сети."""
         stack_sizes = self.stack_sizes
         self.stack_blocks = [
             ResnetStack(
@@ -83,7 +85,7 @@ class ImpalaEncoder(nn.Module):
 
     @nn.compact
     def __call__(self, x, train=True):
-        """Returns the flatten features of images."""
+        """Вычисляет результат модуля для переданных входных данных."""
         x = x.astype(jnp.float32) / 255.0
 
         conv_out = x
@@ -104,12 +106,7 @@ class ImpalaEncoder(nn.Module):
 
 
 class GCEncoder(nn.Module):
-    """Helper module to handle inputs to goal-conditioned networks.
-
-    It takes in observations (s) and goals (g) and returns the concatenation of `state_encoder(s)`, `goal_encoder(g)`,
-    and `concat_encoder([s, g])`. It ignores the encoders that are not provided. This way, the module can handle both
-    early and late fusion (or their variants) of state and goal information.
-    """
+    """Подготавливает входы сетей, зависящих от состояния и цели."""
 
     state_encoder: nn.Module = None
     goal_encoder: nn.Module = None
@@ -117,17 +114,13 @@ class GCEncoder(nn.Module):
 
     @nn.compact
     def __call__(self, observations, goals=None, goal_encoded=False):
-        """Returns the representations of observations and goals.
-
-        If `goal_encoded` is True, `goals` is assumed to be already encoded representations. In this case, either
-        `goal_encoder` or `concat_encoder` must be None.
-        """
+        """Вычисляет результат модуля для переданных входных данных."""
         reps = []
         if self.state_encoder is not None:
             reps.append(self.state_encoder(observations))
         if goals is not None:
             if goal_encoded:
-                # Can't have both goal_encoder and concat_encoder in this case.
+                # В этом режиме нельзя одновременно использовать goal_encoder и concat_encoder.
                 assert self.goal_encoder is None or self.concat_encoder is None
                 reps.append(goals)
             else:
@@ -140,12 +133,7 @@ class GCEncoder(nn.Module):
 
 
 class GCIntentionEncoder(nn.Module):
-    """Helper module to handle inputs to goal- and intention-conditioned networks.
-
-    It takes in observations (s), goals (g), and intention (z), and returns the concatenation of `state_encoder(s)`, `goal_encoder(g)`,
-    and `concat_encoder([s, g])`. It ignores the encoders that are not provided. This way, the module can handle both
-    early and late fusion (or their variants) of state and goal information.
-    """
+    """Подготавливает входы сетей, зависящих от состояния, цели и намерения."""
 
     state_encoder: nn.Module = None
     goal_encoder: nn.Module = None
@@ -154,18 +142,14 @@ class GCIntentionEncoder(nn.Module):
 
     @nn.compact
     def __call__(self, observations, goals=None, intentions=None, goal_encoded=False, intention_encoded=False):
-        """Returns the representations of observations and goals.
-
-        If `goal_encoded` is True, `goals` is assumed to be already encoded representations. In this case, either
-        `goal_encoder` or `concat_encoder` must be None.
-        """
+        """Вычисляет результат модуля для переданных входных данных."""
         reps = []
         concat_encoder_inputs = []
         if self.state_encoder is not None:
             reps.append(self.state_encoder(observations))
         if goals is not None:
             if goal_encoded:
-                # Can't have both goal_encoder and concat_encoder in this case.
+                # В этом режиме нельзя одновременно использовать goal_encoder и concat_encoder.
                 assert self.goal_encoder is None or self.concat_encoder is None
                 reps.append(goals)
             else:
@@ -175,7 +159,7 @@ class GCIntentionEncoder(nn.Module):
                     concat_encoder_inputs.append([observations, goals])
         if intentions is not None:
             if intention_encoded:
-                # Can't have both intention_encoder and concat_encoder in this case.
+                # В этом режиме нельзя одновременно использовать intention_encoder и concat_encoder.
                 assert self.intention_encoder is None or self.concat_encoder is None
                 reps.append(intentions)
             else:

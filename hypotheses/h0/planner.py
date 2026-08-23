@@ -1,10 +1,4 @@
-"""H0 receding-horizon two-switch planner.
-
-The planner is inference-only.  It searches pairs of supported offline states
-``(w1, w2)``, executes the intention for ``w1``, and lets the controller
-replan later.  Candidate-dependent representations are cached once; only the
-pair-dependent ``F(w1, z2)`` values are evaluated at every replan.
-"""
+"""Оценка пар офлайн-подцелей по формуле двух переключений."""
 
 from __future__ import annotations
 
@@ -24,7 +18,7 @@ class TwoSwitchSelection:
 
 
 class TwoSwitchPlanner:
-    """Search supported pairs without training new parameters."""
+    """Оценивает пары реальных подцелей без обучения новых параметров."""
 
     def __init__(
         self,
@@ -72,7 +66,7 @@ class TwoSwitchPlanner:
         digest.update(source_indices.tobytes())
         self.candidate_checksum = digest.hexdigest()
 
-        # These values depend only on the checkpoint and candidate set.
+        # Эти значения зависят только от чекпоинта и фиксированного набора кандидатов.
         backward = self.frozen_fb.backward_repr(self.candidates)
         candidate_latents = self.frozen_fb.normalize_latent(backward)
         candidate_latents_np = np.asarray(candidate_latents)
@@ -134,7 +128,7 @@ class TwoSwitchPlanner:
         return parsed
 
     def experiment_config(self) -> dict[str, Any]:
-        """JSON-serializable candidate and numerical-stability metadata."""
+        """Возвращает сохраняемые параметры и происхождение данных метода."""
 
         return {
             "hypothesis": "h0_two_switch",
@@ -156,11 +150,9 @@ class TwoSwitchPlanner:
         return jnp.mean(value, axis=0)
 
     def _safe_eta(self, numerator, denominator):
-        """Return clipped eta plus masks for invalid and clipped ratios.
+        """Ограничивает коэффициент достижимости и отмечает невалидные знаменатели.
 
-        Near-zero and non-finite denominators invalidate a candidate/pair.  A
-        learned ratio outside the theoretical successor-measure range [0, 1]
-        is clipped and reported instead of creating an unbounded score.
+        Почти нулевые и нечисловые знаменатели запрещают кандидата; остальные отношения ограничиваются диапазоном от нуля до единицы.
         """
 
         numerator = jnp.asarray(numerator)
@@ -218,6 +210,7 @@ class TwoSwitchPlanner:
             observation[None],
             zg_policy[None],
         )[0]
+        # Прямой вариант используется как общая точка отсчёта для оценки переключения.
         direct_value = jnp.sum(fs_zg * zg_reward)
 
         eta1_num = jnp.sum(fs_z * z, axis=-1)
@@ -243,8 +236,8 @@ class TwoSwitchPlanner:
             i = flat // k
             j = flat % k
 
-            # This is the only representation that genuinely depends on both
-            # members of the candidate pair.
+            # Только это прямое представление действительно зависит сразу
+            # от обоих участников проверяемой пары.
             fw1_z2 = self._mean_forward(w[i], z[j])
             eta2_num = jnp.sum(fw1_z2 * z[j], axis=-1)
             eta2, eta2_valid, eta2_clipped = self._safe_eta(
@@ -252,6 +245,7 @@ class TwoSwitchPlanner:
                 self.self_measure[j],
             )
 
+            # Каждая следующая поправка умножается на достижимость всех предыдущих подцелей.
             two_switch_value = (
                 fs_goal[i]
                 + eta1[i]
@@ -271,6 +265,7 @@ class TwoSwitchPlanner:
             eta2_clipped_chunks.append(eta2_clipped)
 
         scores = jnp.concatenate(score_chunks).reshape(k, k)
+        # Вычитание self_goal соответствует поправке переключения из аналитической формулы статьи.
         one_switch_values = fs_goal + eta1 * (fw_goal - self_goal)
         one_switch_values = jnp.where(
             eta1_valid & jnp.isfinite(one_switch_values),
@@ -291,7 +286,7 @@ class TwoSwitchPlanner:
         return scores, details
 
     def score_pairs(self, observation, goal_latent):
-        """Return a scalar ``K x K`` score matrix for inspection and tests."""
+        """Возвращает матрицу оценок всех допустимых пар промежуточных целей."""
 
         scores, details = self._evaluate_pairs(observation, goal_latent)
         self._last_details = details
@@ -307,8 +302,8 @@ class TwoSwitchPlanner:
             )
 
         i, j = np.unravel_index(int(np.argmax(scores_np)), scores_np.shape)
-        # This cached value is exactly normalize(B(w1)); no extra network call
-        # is needed after the pair has been selected.
+        # Сохранённое значение уже равно normalize(B(w1)), поэтому повторный
+        # вызов нейронной сети после выбора пары не требуется.
         intention = self.candidate_latents[i]
 
         details = self._last_details or {}

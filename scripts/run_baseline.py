@@ -1,4 +1,4 @@
-"""Run one OGBench episode with a selected high-level controller."""
+"""Запуск одного эпизода с выбранным высокоуровневым контроллером."""
 
 from __future__ import annotations
 
@@ -22,7 +22,14 @@ from utils.datasets import Dataset
 from utils.env_utils import make_env_and_datasets
 
 
-PUBLIC_CONTROLLERS = ("baseline", "direct", "h0", "h0b")
+PUBLIC_CONTROLLERS = (
+    "baseline",
+    "direct",
+    "h0",
+    "h0b",
+    "hge-synthetic",
+    "hge-max-v",
+)
 
 
 def parse_args(argv=None):
@@ -31,64 +38,90 @@ def parse_args(argv=None):
         "--checkpoint",
         type=Path,
         default=Path("checkpoints/antmaze-medium-navigate-v0"),
+    help='Каталог замороженного агента с params.pkl и flags.json.',
     )
     parser.add_argument(
         "--task-id",
         type=int,
         default=None,
-        help="Official OGBench task id (default: 1 unless custom coordinates are used).",
+        help='Номер официальной задачи OGBench.',
     )
     parser.add_argument(
         "--start-xy",
         nargs=2,
         type=float,
         metavar=("X", "Y"),
-        help="Nominal start at the center of a free maze cell.",
+        help='Координаты центра свободной начальной клетки; требуется --goal-xy.',
     )
     parser.add_argument(
         "--goal-xy",
         nargs=2,
         type=float,
         metavar=("X", "Y"),
-        help="Goal at the center of a free maze cell.",
+        help='Координаты центра свободной целевой клетки.',
     )
-    parser.add_argument("--environment-seed", type=int, default=0)
-    parser.add_argument("--controller-seed", type=int, default=0)
-    parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument("--environment-seed", type=int, default=0, help='Число, определяющее воспроизводимое начальное состояние среды.')
+    parser.add_argument("--controller-seed", type=int, default=0, help='Число, определяющее воспроизводимую случайность контроллера.')
+    parser.add_argument("--temperature", type=float, default=0.0, help='Случайность выбора действий; ноль означает детерминированный режим.')
     parser.add_argument(
         "--controller",
         choices=PUBLIC_CONTROLLERS,
         default="baseline",
-        help="High-level controller used for this episode.",
+        help='Высокоуровневый контроллер текущего эпизода.',
     )
     parser.add_argument(
         "--max-candidates",
         type=int,
         default=64,
-        help="H0/H0-B: deterministic candidate subset size (default: 64).",
+        help='Максимальное число состояний-кандидатов.',
     )
     parser.add_argument(
         "--pair-batch-size",
         type=int,
         default=4096,
-        help="H0/H0-B: number of candidate pairs per forward batch.",
+        help='Количество пар кандидатов в одном вычислительном блоке.',
     )
     parser.add_argument(
         "--eta-epsilon",
         type=float,
         default=1e-6,
-        help="H0/H0-B: minimum absolute eta denominator.",
+        help='Минимальный допустимый модуль знаменателя коэффициента достижимости.',
     )
     parser.add_argument(
         "--h0-replan-interval",
         type=int,
         default=1,
-        help="H0/H0-B: execute the selected first subgoal before replanning.",
+        help='Число шагов исполнения первого намерения до перепланирования H0.',
+    )
+    parser.add_argument(
+        "--hge-replan-interval",
+        type=int,
+        default=1,
+        help='Число шагов между повторным выбором состояния около цели.',
+    )
+    parser.add_argument(
+        "--hge-candidate-radius",
+        type=float,
+        default=0.5,
+        help='Радиус поиска офлайн-состояний вокруг цели.',
+    )
+    parser.add_argument(
+        "--hge-max-candidates",
+        type=int,
+        default=64,
+        help='Максимальное число состояний около цели.',
+    )
+    parser.add_argument(
+        "--hge-disagreement-penalty",
+        type=float,
+        default=0.5,
+        help='Штраф за расхождение оценок участников FB-ансамбля.',
     )
     parser.add_argument(
         "--results-dir",
         type=Path,
         default=Path("results"),
+    help='Каталог сохранения эпизодов.',
     )
 
     args = parser.parse_args(argv)
@@ -110,6 +143,21 @@ def parse_args(argv=None):
             parser.error("--eta-epsilon must be a positive finite number.")
         if args.h0_replan_interval <= 0:
             parser.error("--h0-replan-interval must be positive.")
+    if args.controller in {"hge-synthetic", "hge-max-v"}:
+        if args.hge_replan_interval <= 0:
+            parser.error("--hge-replan-interval must be positive.")
+        if args.hge_max_candidates <= 0:
+            parser.error("--hge-max-candidates must be positive.")
+        if (
+            not np.isfinite(args.hge_candidate_radius)
+            or args.hge_candidate_radius <= 0.0
+        ):
+            parser.error("--hge-candidate-radius must be positive and finite.")
+        if (
+            not np.isfinite(args.hge_disagreement_penalty)
+            or args.hge_disagreement_penalty < 0.0
+        ):
+            parser.error("--hge-disagreement-penalty must be finite and non-negative.")
     return args
 
 
@@ -135,8 +183,8 @@ def save_json(path: Path, data):
         json.dump(data, f, indent=2)
 
 
-def build_controller(args, frozen_fb, train_dataset):
-    """The only dispatch point needed when a new hypothesis is added."""
+def build_controller(args, frozen_fb, train_dataset, goal_xy):
+    """Создаёт выбранный высокоуровневый контроллер без изменения общего запуска."""
 
     if args.controller == "baseline":
         return BaselineController(frozen_fb), "baseline"
@@ -166,6 +214,25 @@ def build_controller(args, frozen_fb, train_dataset):
             replan_interval=args.h0_replan_interval,
         )
         return controller, "h0b_adaptive_depth"
+    if args.controller in {"hge-synthetic", "hge-max-v"}:
+        from scripts.run_h_goal_eur import make_h_goal_eur_controller
+
+        variant = (
+            "synthetic-current"
+            if args.controller == "hge-synthetic"
+            else "dataset-max-v"
+        )
+        controller = make_h_goal_eur_controller(
+            frozen_fb,
+            train_dataset,
+            goal_xy,
+            variant=variant,
+            replan_interval=args.hge_replan_interval,
+            candidate_radius=args.hge_candidate_radius,
+            max_candidates=args.hge_max_candidates,
+            disagreement_penalty=args.hge_disagreement_penalty,
+        )
+        return controller, args.controller.replace("-", "_")
     raise ValueError(f"Unknown controller: {args.controller}")
 
 
@@ -243,7 +310,12 @@ def main(argv=None):
         scenario_name = scenario_id
 
     print("latent checksum:", np.sum(task.latent), np.linalg.norm(task.latent))
-    controller, controller_slug = build_controller(args, frozen_fb, train_dataset)
+    controller, controller_slug = build_controller(
+        args,
+        frozen_fb,
+        train_dataset,
+        task.goal_xy,
+    )
     experiment_name = f"{controller_slug}_{scenario_name}"
 
     runner = EpisodeRunner(
@@ -283,8 +355,8 @@ def main(argv=None):
         "latent_checksum": float(np.sum(task.latent)),
         "latent_norm": float(np.linalg.norm(task.latent)),
     }
-    # Keep the historical experiment-level file and also store an immutable
-    # copy next to the run so later parameter changes cannot relabel old data.
+    # Сохраняем общий файл эксперимента и неизменяемую копию конфигурации
+    # рядом с запуском, чтобы новые параметры не изменили смысл старых результатов.
     save_json(experiment_dir / "config.json", run_config)
     save_json(run_dir / "config.json", run_config)
     save_json(

@@ -1,4 +1,4 @@
-"""Scenario definitions and validation shared by all controllers."""
+"""Общие правила определения задач и проверки пользовательских координат."""
 
 from __future__ import annotations
 
@@ -46,7 +46,7 @@ class Scenario:
 
 
 def xy_to_free_grid_cell(env, xy, *, name: str) -> GridCell:
-    """Convert an exact free-cell center ``(x, y)`` to OGBench ``(i, j)``."""
+    """Проверяет свободную клетку и переводит её координаты в индексы карты."""
 
     xy = np.asarray(xy, dtype=np.float64)
     if xy.shape != (2,) or not np.all(np.isfinite(xy)):

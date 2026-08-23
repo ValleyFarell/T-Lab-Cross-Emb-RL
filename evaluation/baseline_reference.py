@@ -1,3 +1,5 @@
+"""Сохранение и загрузка контрольных результатов исходного метода."""
+
 from pathlib import Path
 import json
 from datetime import datetime

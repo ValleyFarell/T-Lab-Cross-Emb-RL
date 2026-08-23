@@ -1,3 +1,5 @@
+"""Общие средства воспроизводимой оценки исследовательских методов."""
+
 from .runner import EpisodeResult, EpisodeRunner
 from .scenarios import Scenario
 

@@ -1,0 +1,511 @@
+{
+  "experiment": "frozen_fb_value_geometry",
+  "elapsed_seconds": 3.7331124000193086,
+  "dataset": {
+    "source": "synthetic",
+    "environment": "synthetic-value-geometry",
+    "target_formula": "directional XY reachability plus pose dependence that decays with Euclidean distance",
+    "distance_source": "euclidean",
+    "distance_edges": [
+      3.951478958129883,
+      5.88385534286499,
+      8.177549362182617
+    ],
+    "splits": {
+      "split_strategy": "trajectory",
+      "train": {
+        "states": 1260,
+        "trajectories": 42,
+        "pairs": 4000,
+        "unique_starts": 409,
+        "unique_goals": 32,
+        "distance_bins": {
+          "0": 987,
+          "1": 1008,
+          "2": 1012,
+          "3": 993
+        }
+      },
+      "validation": {
+        "states": 270,
+        "trajectories": 9,
+        "pairs": 800,
+        "unique_starts": 85,
+        "unique_goals": 10,
+        "distance_bins": {
+          "0": 221,
+          "1": 168,
+          "2": 213,
+          "3": 198
+        }
+      },
+      "test": {
+        "states": 270,
+        "trajectories": 9,
+        "pairs": 800,
+        "unique_starts": 80,
+        "unique_goals": 10,
+        "distance_bins": {
+          "0": 195,
+          "1": 203,
+          "2": 237,
+          "3": 165
+        }
+      }
+    }
+  },
+  "training_config": {
+    "hidden_width": 48,
+    "hidden_layers": 2,
+    "batch_size": 256,
+    "max_epochs": 30,
+    "patience": 8,
+    "learning_rate": 0.002,
+    "weight_decay": 1e-05,
+    "gradient_clip": 5.0,
+    "huber_delta": 1.0,
+    "prediction_batch_size": 4096,
+    "min_improvement": 1e-05,
+    "log_every": 5
+  },
+  "runs": {
+    "0": {
+      "model_seed": 0,
+      "models": {
+        "xy": {
+          "overall": {
+            "count": 800,
+            "mse": 0.000888277302627693,
+            "rmse": 0.029803981321757888,
+            "mae": 0.016397565428851523,
+            "target_mean": 0.3795437843187392,
+            "target_std": 0.23306245764381892,
+            "nrmse": 0.12787980365034277,
+            "r2": 0.9836467558183498
+          },
+          "by_distance": {
+            "0": {
+              "count": 195,
+              "mse": 0.0028851516270247722,
+              "rmse": 0.05371360746612326,
+              "mae": 0.03192477088708144,
+              "target_mean": 0.671998079159321,
+              "target_std": 0.18012086821843654,
+              "nrmse": 0.29820868618612023,
+              "r2": 0.9110715794831481
+            },
+            "1": {
+              "count": 203,
+              "mse": 0.00021749203331878126,
+              "rmse": 0.014747611105490315,
+              "mae": 0.011669602226741209,
+              "target_mean": 0.40215660411442444,
+              "target_std": 0.1302316626214929,
+              "nrmse": 0.11324136395580676,
+              "r2": 0.9871763934894285
+            },
+            "2": {
+              "count": 237,
+              "mse": 0.00018718184350547832,
+              "rmse": 0.013681441572636939,
+              "mae": 0.01059634768809801,
+              "target_mean": 0.24940534216771296,
+              "target_std": 0.13407101568560553,
+              "nrmse": 0.10204622902775427,
+              "r2": 0.9895865671412151
+            },
+            "3": {
+              "count": 165,
+              "mse": 0.0003606320918655323,
+              "rmse": 0.018990315738963696,
+              "mae": 0.012196717369652381,
+              "target_mean": 0.19302148660574334,
+              "target_std": 0.132313708512741,
+              "nrmse": 0.14352492989896845,
+              "r2": 0.9794005944974962
+            }
+          },
+          "ranking": {
+            "groups": 80,
+            "mean_spearman": 0.9787516157937205,
+            "top1_agreement": 0.95,
+            "top3_contains_teacher_best": 1.0,
+            "mean_value_regret": 0.001876179873943329,
+            "median_value_regret": 0.0,
+            "mean_relative_regret": 0.001927122644014961
+          },
+          "matched_goal_pose": {
+            "groups": 110,
+            "bucket_radius": 0.2,
+            "teacher_mean_pose_spread": 0.008677064966071736,
+            "teacher_median_pose_spread": 0.004707425832748413,
+            "teacher_p90_pose_spread": 0.011910420656204256,
+            "student_mean_pose_spread": 0.004636261002583937,
+            "mean_group_distance": 6.135940011252057,
+            "mean_goal_xy_span": 0.12999865416064957,
+            "max_goal_xy_span": 0.14106235119996072,
+            "mean_ensemble_disagreement": 0.009592057326526352
+          },
+          "best_epoch": 30,
+          "epochs_ran": 30
+        },
+        "full": {
+          "overall": {
+            "count": 800,
+            "mse": 0.006533260921595536,
+            "rmse": 0.08082858975384598,
+            "mae": 0.06512615956780791,
+            "target_mean": 0.3795437843187392,
+            "target_std": 0.23306245764381892,
+            "nrmse": 0.34681085306915216,
+            "r2": 0.8797222321934469
+          },
+          "by_distance": {
+            "0": {
+              "count": 195,
+              "mse": 0.010330447001068735,
+              "rmse": 0.10163880657046664,
+              "mae": 0.08055158372108753,
+              "target_mean": 0.671998079159321,
+              "target_std": 0.18012086821843654,
+              "nrmse": 0.5642811273106181,
+              "r2": 0.681586809361058
+            },
+            "1": {
+              "count": 203,
+              "mse": 0.0058391790348999014,
+              "rmse": 0.07641452109972229,
+              "mae": 0.06197656536924428,
+              "target_mean": 0.40215660411442444,
+              "target_std": 0.1302316626214929,
+              "nrmse": 0.5867583931705955,
+              "r2": 0.6557145880438608
+            },
+            "2": {
+              "count": 237,
+              "mse": 0.00494782862755823,
+              "rmse": 0.07034080343270348,
+              "mae": 0.058548230986073535,
+              "target_mean": 0.24940534216771296,
+              "target_std": 0.13407101568560553,
+              "nrmse": 0.5246533195336684,
+              "r2": 0.7247388943023023
+            },
+            "3": {
+              "count": 165,
+              "mse": 0.005176865716679066,
+              "rmse": 0.07195043930845083,
+              "mae": 0.06021936554532272,
+              "target_mean": 0.19302148660574334,
+              "target_std": 0.132313708512741,
+              "nrmse": 0.5437867331904044,
+              "r2": 0.704295988806108
+            }
+          },
+          "ranking": {
+            "groups": 80,
+            "mean_spearman": 0.8612755224445998,
+            "top1_agreement": 0.65,
+            "top3_contains_teacher_best": 0.875,
+            "mean_value_regret": 0.021486983075737952,
+            "median_value_regret": 0.0,
+            "mean_relative_regret": 0.036877756749128174
+          },
+          "matched_goal_pose": {
+            "groups": 110,
+            "bucket_radius": 0.2,
+            "teacher_mean_pose_spread": 0.008677064966071736,
+            "teacher_median_pose_spread": 0.004707425832748413,
+            "teacher_p90_pose_spread": 0.011910420656204256,
+            "student_mean_pose_spread": 0.031933635066856036,
+            "mean_group_distance": 6.135940011252057,
+            "mean_goal_xy_span": 0.12999865416064957,
+            "max_goal_xy_span": 0.14106235119996072,
+            "mean_ensemble_disagreement": 0.009592057326526352
+          },
+          "best_epoch": 30,
+          "epochs_ran": 30
+        },
+        "latent2": {
+          "overall": {
+            "count": 800,
+            "mse": 0.014989874314825622,
+            "rmse": 0.12243314222393226,
+            "mae": 0.08998364023260365,
+            "target_mean": 0.3795437843187392,
+            "target_std": 0.23306245764381892,
+            "nrmse": 0.5253233123073064,
+            "r2": 0.7240354175464803
+          },
+          "by_distance": {
+            "0": {
+              "count": 195,
+              "mse": 0.04139423833959724,
+              "rmse": 0.20345574049310391,
+              "mae": 0.16807855375302144,
+              "target_mean": 0.671998079159321,
+              "target_std": 0.18012086821843654,
+              "nrmse": 1.1295511869639039,
+              "r2": -0.2758858839715643
+            },
+            "1": {
+              "count": 203,
+              "mse": 0.008718096018989546,
+              "rmse": 0.09337074498465538,
+              "mae": 0.07322076638343886,
+              "target_mean": 0.40215660411442444,
+              "target_std": 0.1302316626214929,
+              "nrmse": 0.7169588647273082,
+              "r2": 0.4859699862889295
+            },
+            "2": {
+              "count": 237,
+              "mse": 0.006556183505491904,
+              "rmse": 0.0809702630938785,
+              "mae": 0.06600596691076034,
+              "target_mean": 0.24940534216771296,
+              "target_std": 0.13407101568560553,
+              "nrmse": 0.6039356282923412,
+              "r2": 0.635261756879135
+            },
+            "3": {
+              "count": 165,
+              "mse": 0.0036147514726216695,
+              "rmse": 0.060122803266495065,
+              "mae": 0.052753724063972406,
+              "target_mean": 0.19302148660574334,
+              "target_std": 0.132313708512741,
+              "nrmse": 0.45439587433758316,
+              "r2": 0.7935243893849834
+            }
+          },
+          "ranking": {
+            "groups": 80,
+            "mean_spearman": 0.7118761206622131,
+            "top1_agreement": 0.475,
+            "top3_contains_teacher_best": 0.6375,
+            "mean_value_regret": 0.05865482985973358,
+            "median_value_regret": 0.0049847811460494995,
+            "mean_relative_regret": 0.1322001345428408
+          },
+          "matched_goal_pose": {
+            "groups": 110,
+            "bucket_radius": 0.2,
+            "teacher_mean_pose_spread": 0.008677064966071736,
+            "teacher_median_pose_spread": 0.004707425832748413,
+            "teacher_p90_pose_spread": 0.011910420656204256,
+            "student_mean_pose_spread": 0.03708906742659482,
+            "mean_group_distance": 6.135940011252057,
+            "mean_goal_xy_span": 0.12999865416064957,
+            "max_goal_xy_span": 0.14106235119996072,
+            "mean_ensemble_disagreement": 0.009592057326526352
+          },
+          "best_epoch": 30,
+          "epochs_ran": 30,
+          "embedding": {
+            "embedding_dimension": 2,
+            "coordinate_readout_affine": {
+              "count": 270,
+              "rmse_coordinate": 0.780783915905519,
+              "mean_euclidean_error": 0.9686111677648922,
+              "median_euclidean_error": 0.9049191181766124,
+              "p90_euclidean_error": 1.6591415724592145,
+              "fraction_within_0_3": 0.08518518518518518,
+              "fraction_within_0_5": 0.21481481481481482,
+              "r2": 0.911446832379714
+            },
+            "coordinate_readout_polynomial": {
+              "count": 270,
+              "rmse_coordinate": 0.7839232118285324,
+              "mean_euclidean_error": 0.9767051256349616,
+              "median_euclidean_error": 0.9427025774140191,
+              "p90_euclidean_error": 1.6474413851903582,
+              "fraction_within_0_3": 0.08148148148148149,
+              "fraction_within_0_5": 0.21481481481481482,
+              "r2": 0.9107333098327051
+            },
+            "embedding_from_xy_affine": {
+              "count": 270,
+              "rmse_coordinate": 0.415734851928516,
+              "mean_euclidean_error": 0.5167892264655094,
+              "median_euclidean_error": 0.4808187323453202,
+              "p90_euclidean_error": 0.9107582764263772,
+              "fraction_within_0_3": 0.25555555555555554,
+              "fraction_within_0_5": 0.5222222222222223,
+              "r2": 0.9120636746761147
+            },
+            "embedding_from_xy_polynomial": {
+              "count": 270,
+              "rmse_coordinate": 0.4036158075278018,
+              "mean_euclidean_error": 0.4997094978205371,
+              "median_euclidean_error": 0.46623723699677316,
+              "p90_euclidean_error": 0.8676809882073129,
+              "fraction_within_0_3": 0.2740740740740741,
+              "fraction_within_0_5": 0.562962962962963,
+              "r2": 0.9171157943544145
+            },
+            "coordinate_probe_polynomial_degree": 3,
+            "coordinate_probe_ridge": 1.0,
+            "test_embedding_covariance_eigenvalues": [
+              2.413039177896379,
+              1.5324970382058043
+            ]
+          }
+        },
+        "latent4": {
+          "overall": {
+            "count": 800,
+            "mse": 0.01256487039732582,
+            "rmse": 0.11209313269476333,
+            "mae": 0.0825206622582482,
+            "target_mean": 0.3795437843187392,
+            "target_std": 0.23306245764381892,
+            "nrmse": 0.48095748164670643,
+            "r2": 0.768679900848058
+          },
+          "by_distance": {
+            "0": {
+              "count": 195,
+              "mse": 0.026492662991670808,
+              "rmse": 0.1627656689590001,
+              "mae": 0.12932225519265883,
+              "target_mean": 0.671998079159321,
+              "target_std": 0.18012086821843654,
+              "nrmse": 0.9036469264716768,
+              "r2": 0.18342223227829202
+            },
+            "1": {
+              "count": 203,
+              "mse": 0.011197345369567464,
+              "rmse": 0.10581750974941465,
+              "mae": 0.0854131459749391,
+              "target_mean": 0.40215660411442444,
+              "target_std": 0.1302316626214929,
+              "nrmse": 0.8125328942237657,
+              "r2": 0.3397902958043507
+            },
+            "2": {
+              "count": 237,
+              "mse": 0.008120121702303914,
+              "rmse": 0.09011171789675256,
+              "mae": 0.06625204374409528,
+              "target_mean": 0.24940534216771296,
+              "target_std": 0.13407101568560553,
+              "nrmse": 0.6721193051006874,
+              "r2": 0.548255639710969
+            },
+            "3": {
+              "count": 165,
+              "mse": 0.004171497460706827,
+              "rmse": 0.0645871307669479,
+              "mae": 0.04701870935616281,
+              "target_mean": 0.19302148660574334,
+              "target_std": 0.132313708512741,
+              "nrmse": 0.48813635029153885,
+              "r2": 0.7617229035240561
+            }
+          },
+          "ranking": {
+            "groups": 80,
+            "mean_spearman": 0.7814669790486362,
+            "top1_agreement": 0.5625,
+            "top3_contains_teacher_best": 0.825,
+            "mean_value_regret": 0.045682665333151816,
+            "median_value_regret": 0.0,
+            "mean_relative_regret": 0.08155078532691636
+          },
+          "matched_goal_pose": {
+            "groups": 110,
+            "bucket_radius": 0.2,
+            "teacher_mean_pose_spread": 0.008677064966071736,
+            "teacher_median_pose_spread": 0.004707425832748413,
+            "teacher_p90_pose_spread": 0.011910420656204256,
+            "student_mean_pose_spread": 0.029141710156744178,
+            "mean_group_distance": 6.135940011252057,
+            "mean_goal_xy_span": 0.12999865416064957,
+            "max_goal_xy_span": 0.14106235119996072,
+            "mean_ensemble_disagreement": 0.009592057326526352
+          },
+          "best_epoch": 27,
+          "epochs_ran": 30,
+          "embedding": {
+            "embedding_dimension": 4,
+            "coordinate_readout_affine": {
+              "count": 270,
+              "rmse_coordinate": 0.5225515420325635,
+              "mean_euclidean_error": 0.643290764534361,
+              "median_euclidean_error": 0.6006488906990193,
+              "p90_euclidean_error": 1.0726080435142071,
+              "fraction_within_0_3": 0.18888888888888888,
+              "fraction_within_0_5": 0.37777777777777777,
+              "r2": 0.960335621696085
+            },
+            "coordinate_readout_polynomial": {
+              "count": 270,
+              "rmse_coordinate": 0.5049213981787187,
+              "mean_euclidean_error": 0.6107808394561097,
+              "median_euclidean_error": 0.5471171741043104,
+              "p90_euclidean_error": 1.0868188503886633,
+              "fraction_within_0_3": 0.1925925925925926,
+              "fraction_within_0_5": 0.44814814814814813,
+              "r2": 0.9629669111991634
+            },
+            "embedding_from_xy_affine": {
+              "count": 270,
+              "rmse_coordinate": 0.3672120458261937,
+              "mean_euclidean_error": 0.6856705794857192,
+              "median_euclidean_error": 0.6676305994891438,
+              "p90_euclidean_error": 1.006040681130505,
+              "fraction_within_0_3": 0.06296296296296296,
+              "fraction_within_0_5": 0.23703703703703705,
+              "r2": 0.9474762961195571
+            },
+            "embedding_from_xy_polynomial": {
+              "count": 270,
+              "rmse_coordinate": 0.3503208367091577,
+              "mean_euclidean_error": 0.6506956405092282,
+              "median_euclidean_error": 0.628837775871437,
+              "p90_euclidean_error": 0.9646850912856736,
+              "fraction_within_0_3": 0.07037037037037037,
+              "fraction_within_0_5": 0.2740740740740741,
+              "r2": 0.9521971879864547
+            },
+            "coordinate_probe_polynomial_degree": 3,
+            "coordinate_probe_ridge": 1.0,
+            "test_embedding_covariance_eigenvalues": [
+              6.441427088373626,
+              3.709894714370935,
+              0.11864257521866706,
+              0.0374555458688434
+            ]
+          }
+        }
+      },
+      "signals": {
+        "far_distance_bin": 3,
+        "full_far_r2": 0.704295988806108,
+        "xy_far_r2": 0.9794005944974962,
+        "latent2_far_r2": 0.7935243893849834,
+        "full_minus_xy_far_r2": -0.27510460569138817,
+        "full_minus_latent2_far_r2": -0.08922840057887538,
+        "latent2_xy_readout_r2": 0.9107333098327051,
+        "latent2_xy_readout_p90": 1.6474413851903582
+      },
+      "plots": [
+        "value_quality_by_distance.png",
+        "teacher_vs_prediction.png",
+        "training_curves.png",
+        "latent2_embedding_geometry.png",
+        "latent2_xy_readout_error.png",
+        "latent4_embedding_geometry.png",
+        "latent4_xy_readout_error.png"
+      ]
+    }
+  },
+  "limitations": [
+    "The target is a frozen learned FB estimate, not a measured environment return.",
+    "The maze map, when available, is used only for diagnostic distance bins.",
+    "No environment transitions are collected and frozen checkpoint weights are unchanged.",
+    "Post-hoc coordinate probes are not part of the encoder training objective."
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "source": "synthetic",
+  "environment": "synthetic-value-geometry",
+  "target_formula": "directional XY reachability plus pose dependence that decays with Euclidean distance",
+  "distance_source": "euclidean",
+  "distance_edges": [
+    3.951478958129883,
+    5.88385534286499,
+    8.177549362182617
+  ],
+  "splits": {
+    "split_strategy": "trajectory",
+    "train": {
+      "states": 1260,
+      "trajectories": 42,
+      "pairs": 4000,
+      "unique_starts": 409,
+      "unique_goals": 32,
+      "distance_bins": {
+        "0": 987,
+        "1": 1008,
+        "2": 1012,
+        "3": 993
+      }
+    },
+    "validation": {
+      "states": 270,
+      "trajectories": 9,
+      "pairs": 800,
+      "unique_starts": 85,
+      "unique_goals": 10,
+      "distance_bins": {
+        "0": 221,
+        "1": 168,
+        "2": 213,
+        "3": 198
+      }
+    },
+    "test": {
+      "states": 270,
+      "trajectories": 9,
+      "pairs": 800,
+      "unique_starts": 80,
+      "unique_goals": 10,
+      "distance_bins": {
+        "0": 195,
+        "1": 203,
+        "2": 237,
+        "3": 165
+      }
+    }
+  }
+}

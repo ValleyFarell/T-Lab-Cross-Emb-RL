@@ -1,4 +1,4 @@
-"""Controller adapter for the H0 two-switch planner."""
+"""Адаптер планировщика H0 к общему интерфейсу контроллера."""
 
 from __future__ import annotations
 
@@ -45,8 +45,8 @@ class TwoSwitchController(HighLevelController):
         rng,
         temperature,
     ):
-        # H0 selection is a deterministic argmax.  These parameters still
-        # control the low-level action in EpisodeRunner.
+        # H0 выбирает максимум детерминированно, но переданные параметры по-прежнему
+        # управляют случайностью низкоуровневого действия в EpisodeRunner.
         del rng, temperature
 
         replanned = self._cached is None or self._step % self.replan_interval == 0

@@ -1,4 +1,4 @@
-"""H0-B adaptive-depth factory and command-line launcher."""
+"""Создание и запуск H0-B с выбором глубины планирования."""
 
 from __future__ import annotations
 

@@ -1,3 +1,5 @@
+"""Сохранение контрольной сводки исходного метода."""
+
 import argparse
 import json
 from pathlib import Path
@@ -7,8 +9,8 @@ from evaluation.baseline_reference import save_baseline_reference
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--summary", type=Path, default=Path("results/summary.json"))
-    parser.add_argument("--results-dir", type=Path, default=Path("results"))
+    parser.add_argument("--summary", type=Path, default=Path("results/summary.json"), help='Путь к ранее рассчитанной итоговой сводке.')
+    parser.add_argument("--results-dir", type=Path, default=Path("results"), help='Каталог сохранения эпизодов.')
     args = parser.parse_args()
 
     with args.summary.open("r", encoding="utf-8") as f:

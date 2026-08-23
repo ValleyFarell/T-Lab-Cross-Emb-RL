@@ -1,12 +1,4 @@
-"""Visual check of AntMaze map orientation using one saved trajectory.
-
-The trajectory stays fixed in MuJoCo world coordinates.
-Only the discrete maze map is transformed.
-
-Eight square-grid symmetries are shown with identical axis limits:
-identity, horizontal/vertical flips, 180° rotation, transpose and
-the corresponding reflected transposes.
-"""
+"""Проверка ориентации карты лабиринта по сохранённой траектории."""
 
 from __future__ import annotations
 
@@ -26,12 +18,13 @@ def parse_args():
         "--trajectory",
         type=Path,
         required=True,
-        help="Path to a saved trajectory.npz.",
+        help='Путь к сохранённому файлу trajectory.npz.',
     )
     parser.add_argument(
         "--env-name",
         type=str,
         default="ogbench-antmaze-medium-navigate-v0",
+    help='Имя используемой среды OGBench.',
     )
     parser.add_argument(
         "--goal",
@@ -39,12 +32,13 @@ def parse_args():
         type=float,
         default=None,
         metavar=("X", "Y"),
-        help="Optional goal override. Otherwise read sibling summary.json.",
+        help='Необязательная цель; без неё используется соседний summary.json.',
     )
     parser.add_argument(
         "--out",
         type=Path,
         default=Path("maze_orientation_check.png"),
+    help='Путь к сохраняемому изображению или итоговому JSON-файлу.',
     )
     return parser.parse_args()
 
@@ -93,7 +87,7 @@ def load_goal(trajectory_path: Path, explicit_goal, env_name=None):
 
 
 def maze_variants(maze_map):
-    """All 8 dihedral symmetries of a square occupancy grid."""
+    """Перечисляет симметрии карты для проверки её ориентации."""
     transposed = maze_map.T
 
     return [
@@ -109,7 +103,7 @@ def maze_variants(maze_map):
 
 
 def cell_center_to_world(row, col, maze_shape, maze_unit):
-    """Same cell->world convention as evaluation/visualization.py."""
+    """Переводит центр клетки в мировые координаты по соглашению визуализации."""
     height, _ = maze_shape
     x_center = (col - 1) * maze_unit
     y_center = ((height - 2) - row) * maze_unit
@@ -145,7 +139,7 @@ def draw_walls(ax, maze_map, maze_unit):
 
 
 def fixed_world_bounds(maze_shape, maze_unit):
-    """Bounds identical to evaluation/visualization.py, independent of variant."""
+    """Возвращает неизменные границы изображения лабиринта."""
     height, width = maze_shape
     half = maze_unit / 2.0
 

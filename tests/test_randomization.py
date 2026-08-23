@@ -1,3 +1,5 @@
+"""Проверки корректности компонента randomization и его взаимодействия со стендом."""
+
 from __future__ import annotations
 
 import jax

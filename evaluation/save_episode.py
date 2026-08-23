@@ -1,4 +1,4 @@
-"""Persist an episode without depending on a concrete controller."""
+"""Сохранение эпизода без зависимости от конкретного контроллера."""
 
 from pathlib import Path
 
@@ -9,7 +9,7 @@ from evaluation.visualization import plot_path
 
 
 def _per_step_diagnostics(result):
-    """Select diagnostics aligned with the action axis."""
+    """Выбирает диагностические поля, согласованные с последовательностью действий."""
 
     step_count = len(result.actions)
     per_step = {}

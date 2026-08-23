@@ -1,3 +1,5 @@
+"""Реестр исходных обучаемых агентов официального проекта."""
+
 from agents.fb import FBAgent
 from agents.icvf import ICVFAgent
 from agents.onestep_fb import OneStepFBAgent

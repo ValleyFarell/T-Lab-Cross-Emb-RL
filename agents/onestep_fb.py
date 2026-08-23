@@ -1,3 +1,5 @@
+"""Одношаговое обучение прямого и обратного представлений."""
+
 import copy
 from typing import Any
 
@@ -14,9 +16,9 @@ from utils.networks import GCActor, GCValue
 
 
 class OneStepFBAgent(flax.struct.PyTreeNode):
-    """One-step forward-backward representation learning (one-step FB) agent.
-    
-        https://arxiv.org/abs/2602.11399
+    """Обучает FB-представление на одношаговых переходах.
+
+    Источник: https://arxiv.org/abs/2602.11399
     """
 
     rng: Any
@@ -24,14 +26,14 @@ class OneStepFBAgent(flax.struct.PyTreeNode):
     config: Any = nonpytree_field()
 
     def fb_repr_loss(self, batch, grad_params):
-        """Compute the forward backward representation loss."""
+        """Вычисляет потери обучения прямого и обратного представлений."""
         batch_size = batch['observations'].shape[0]
         observations = batch['observations']
         actions = batch['actions']
         next_observations = batch['next_observations']
         next_actions = batch['next_actions']
 
-        # Compute target successor measures.
+        # Вычисляем целевые меры будущих посещений.
         target_next_forward_reprs = self.network.select('target_forward_repr')(
             next_observations, actions=next_actions)
         target_backward_reprs = self.network.select('target_backward_repr')(
@@ -46,14 +48,14 @@ class OneStepFBAgent(flax.struct.PyTreeNode):
         else:
             target_succ_measures = jnp.min(target_succ_measures, axis=0)
 
-        # Compute successor measures.
+        # Вычисляем текущие меры будущих посещений.
         forward_reprs = self.network.select('forward_repr')(
             observations, actions=actions, params=grad_params)
         backward_reprs = self.network.select('backward_repr')(
             observations, actions=actions, params=grad_params)
         succ_measures = jnp.einsum('eij,kj->eik', forward_reprs, backward_reprs)
 
-        # Compute the TD LSIF loss.
+        # Вычисляем потери временной разности для оценки мер посещений.
         I = jnp.eye(batch_size)
         repr_off_diag_loss = jax.vmap(
             lambda x: (x * (1 - I)) ** 2,
@@ -67,7 +69,7 @@ class OneStepFBAgent(flax.struct.PyTreeNode):
 
         repr_loss = repr_diag_loss + repr_off_diag_loss
 
-        # Compute orthonormalization regularization.
+        # Добавляем регуляризацию ортонормальности представлений.
         covariance = jnp.matmul(backward_reprs, backward_reprs.T)
         ortho_diag_loss = -jnp.diag(covariance).mean()
         ortho_off_diag_loss = 0.5 * jnp.sum((covariance * (1 - I)) ** 2, axis=-1) / (batch_size - 1)
@@ -90,12 +92,12 @@ class OneStepFBAgent(flax.struct.PyTreeNode):
         }
 
     def actor_loss(self, batch, grad_params, rng=None):
-        """Compute the RPG+BC actor loss."""
+        """Вычисляет функцию потерь обучаемой политики действий."""
         observations = batch['observations']
         actions = batch['actions']
         latents = batch['latents']
 
-        # Sample actions.
+        # Выбираем действия текущей политики.
         dist = self.network.select('actor')(
             observations, latents, goal_encoded=True, params=grad_params)
         if self.config['const_std']:
@@ -110,11 +112,11 @@ class OneStepFBAgent(flax.struct.PyTreeNode):
         else:
             q = jnp.min(qs, axis=0)
 
-        # Compute BC loss.
+        # Вычисляем потери воспроизведения действий офлайн-набора.
         log_prob = dist.log_prob(actions)
         bc_loss = -log_prob.mean()
 
-        # Normalize Q values by the absolute mean to make the loss scale invariant.
+        # Нормируем оценки Q, чтобы потери не зависели от общего масштаба.
         q_loss = -q.mean()
         if self.config['normalize_q_loss']:
             lam = jax.lax.stop_gradient(1 / jnp.abs(q).mean())
@@ -140,20 +142,20 @@ class OneStepFBAgent(flax.struct.PyTreeNode):
 
     @jax.jit
     def total_loss(self, batch, grad_params, rng=None):
-        """Compute the total loss."""
+        """Собирает общую функцию потерь всех обучаемых компонентов."""
         info = {}
         rng = rng if rng is not None else self.rng
         rng, latent_rng, actor_rng = jax.random.split(rng, 3)
 
-        # Sample latents.
+        # Выбираем намерения для текущего обучающего блока.
         batch['latents'] = self.sample_latents(batch, latent_rng)
 
-        # Train the one-step FB representations.
+        # Обновляем одношаговые прямое и обратное представления.
         fb_repr_loss, fb_repr_info = self.fb_repr_loss(batch, grad_params)
         for k, v in fb_repr_info.items():
             info[f'fb_repr/{k}'] = v
 
-        # Train the actor to maximize the inner products.
+        # Обучаем политику увеличивать скалярную оценку ценности.
         actor_loss, actor_info = self.actor_loss(batch, grad_params, actor_rng)
         for k, v in actor_info.items():
             info[f'actor/{k}'] = v
@@ -163,7 +165,7 @@ class OneStepFBAgent(flax.struct.PyTreeNode):
         return loss, info
 
     def target_update(self, network, module_name):
-        """Update the target network."""
+        """Плавно обновляет параметры целевой нейронной сети."""
         new_target_params = jax.tree_util.tree_map(
             lambda p, tp: p * self.config['tau'] + tp * (1 - self.config['tau']),
             self.network.params[f'modules_{module_name}'],
@@ -173,7 +175,7 @@ class OneStepFBAgent(flax.struct.PyTreeNode):
 
     @jax.jit
     def update(self, batch):
-        """Update the agent and return a new agent with information dictionary."""
+        """Обновляет агента и возвращает новое состояние вместе с диагностикой."""
         new_rng, rng = jax.random.split(self.rng)
 
         def loss_fn(grad_params):
@@ -187,7 +189,7 @@ class OneStepFBAgent(flax.struct.PyTreeNode):
 
     @jax.jit
     def infer_latent(self, batch):
-        """Infer the latent variable using rewards on downstream tasks."""
+        """Строит представление конечной задачи по наградам офлайн-состояний."""
         observations = batch['observations']
         actions = batch['actions']
         rewards = batch['rewards']
@@ -196,7 +198,7 @@ class OneStepFBAgent(flax.struct.PyTreeNode):
         backward_reprs = self.network.select('backward_repr')(
             observations, actions=actions)
 
-        # reward-weighted average
+        # Среднее представление состояний, взвешенное по награде.
         latent = jnp.mean((weights * rewards)[..., None] * backward_reprs, axis=0)
         if self.config['normalize_latent']:
             latent = latent / jnp.linalg.norm(
@@ -206,7 +208,7 @@ class OneStepFBAgent(flax.struct.PyTreeNode):
 
     @jax.jit
     def sample_latents(self, batch, rng):
-        """Sample latent variables and intrinsic rewards."""
+        """Формирует намерения и связанные внутренние награды."""
         batch_size = batch['observations'].shape[0]
         observations = batch['observations']
         actions = batch['actions']
@@ -242,7 +244,7 @@ class OneStepFBAgent(flax.struct.PyTreeNode):
         seed=None,
         temperature=1.0,
     ):
-        """Sample actions from the actor."""
+        """Выбирает действие исходной политики по состоянию и намерению."""
         dist = self.network.select('actor')(observations, latents,
                                             goal_encoded=True, temperature=temperature)
         actions = dist.sample(seed=seed)
@@ -256,12 +258,12 @@ class OneStepFBAgent(flax.struct.PyTreeNode):
         ex_batch,
         config,
     ):
-        """Create a new agent.
+        """Создаёт экземпляр агента или структуры данных с заданной конфигурацией.
 
-        Args:
-            seed: Random seed.
-            ex_batch: Example batch.
-            config: Configuration dictionary.
+        Параметры:
+            seed: начальное значение генератора случайных чисел.
+            ex_batch: пример блока переходов.
+            config: конфигурация агента или вспомогательной модели.
         """
         rng = jax.random.PRNGKey(seed)
         rng, init_rng = jax.random.split(rng, 2)
@@ -272,7 +274,7 @@ class OneStepFBAgent(flax.struct.PyTreeNode):
 
         action_dim = ex_actions.shape[-1]
 
-        # Define encoders.
+        # Создаём энкодеры исходных наблюдений.
         encoders = dict()
         if config['encoder'] is not None:
             encoder_module = encoder_modules[config['encoder']]
@@ -280,7 +282,7 @@ class OneStepFBAgent(flax.struct.PyTreeNode):
             encoders['backward_repr'] = GCEncoder(state_encoder=encoder_module())
             encoders['actor'] = GCEncoder(state_encoder=encoder_module())
 
-        # Define networks.
+        # Создаём вычислительные сети агента.
         forward_repr_def = GCValue(
             hidden_dims=config['forward_repr_hidden_dims'],
             value_dim=config['latent_dim'],
@@ -334,47 +336,47 @@ class OneStepFBAgent(flax.struct.PyTreeNode):
 def get_config():
     config = ml_collections.ConfigDict(
         dict(
-            agent_name='onestep_fb',  # Agent name.
-            lr=1e-4,  # Learning rate.
-            batch_size=1024,  # Batch size.
-            actor_hidden_dims=(512, 512, 512, 512),  # Actor network hidden dimensions.
-            forward_repr_hidden_dims=(512, 512, 512, 512),  # Forward representation network hidden dimensions.
-            backward_repr_hidden_dims=(512, 512, 512, 512),  # Backward representation network hidden dimension.
-            actor_layer_norm=False,  # Whether to use layer normalization for the actor.
-            fackward_repr_layer_norm=True,  # Whether to use layer normalization for the forward representations.
-            backward_repr_layer_norm=True,  # Whether to use layer normalization for the backward representations.
-            activation='gelu',  # Activation function.
-            latent_dim=128,  # Latent dimension for transition latents.
-            discount=0.99,  # Discount factor.
-            tau=0.005,  # Target network update rate.
-            normalize_latent=True,  # Whether to normalize backward representations.
-            reward_temperature=0.0,  # Reward weight temperature.
-            repr_agg='mean',  # Aggregation method for target forward backward representation.
-            q_agg='min',  # Aggregation method for forward-latent inner product.
-            orthonorm_coeff=0.0,  # orthonormalization coefficient
-            latent_mix_prob=0.5,  # Probability to replace latents sampled from gaussian with backward representations.
-            alpha=0.3,  # BC coefficient in reparameterized policy gradient + behavioral cloning (RPG+BC).
-            tanh_squash=True,  # Whether to use tanh squash for the actor.
-            actor_fc_scale=0.01,  # Final layer initialization scale for actor.
-            const_std=True,  # Whether to use constant standard deviation for the actor.
-            normalize_q_loss=True,  # Whether to normalize the Q loss.
-            num_zero_shot_samples=100_000,  # Number of samples used to infer the zero-shot latent.
-            encoder=ml_collections.config_dict.placeholder(str),  # Encoder name (None, 'impala_small', etc.).
+            agent_name='onestep_fb',  # Название реализации агента.
+            lr=1e-4,  # Шаг обновления обучаемых параметров.
+            batch_size=1024,  # Количество примеров в одном обучающем блоке.
+            actor_hidden_dims=(512, 512, 512, 512),  # Размеры скрытых слоёв сети политики.
+            forward_repr_hidden_dims=(512, 512, 512, 512),  # Размеры скрытых слоёв прямого представления F.
+            backward_repr_hidden_dims=(512, 512, 512, 512),  # Размеры скрытых слоёв обратного представления B.
+            actor_layer_norm=False,  # Использовать ли нормализацию слоёв политики.
+            fackward_repr_layer_norm=True,  # Использовать ли нормализацию слоёв прямого представления.
+            backward_repr_layer_norm=True,  # Использовать ли нормализацию слоёв обратного представления.
+            activation='gelu',  # Функция активации нейронной сети.
+            latent_dim=128,  # Размерность представления намерения.
+            discount=0.99,  # Коэффициент дисконтирования будущих состояний.
+            tau=0.005,  # Скорость плавного обновления целевой сети.
+            normalize_latent=True,  # Нормализовать ли обратные представления состояний.
+            reward_temperature=0.0,  # Температура весов, определяемых наградой.
+            repr_agg='mean',  # Способ объединения оценок целевого FB-ансамбля.
+            q_agg='min',  # Способ объединения скалярных оценок прямого представления.
+            orthonorm_coeff=0.0,  # Коэффициент регуляризации ортонормальности.
+            latent_mix_prob=0.5,  # Вероятность заменить случайное намерение реальным обратным представлением.
+            alpha=0.3,  # Вес воспроизведения офлайн-действий при обучении градиентом политики.
+            tanh_squash=True,  # Ограничивать ли действия политики функцией tanh.
+            actor_fc_scale=0.01,  # Масштаб инициализации последнего слоя политики.
+            const_std=True,  # Использовать ли постоянный разброс действий политики.
+            normalize_q_loss=True,  # Нормировать ли потери оценки Q.
+            num_zero_shot_samples=100_000,  # Число состояний для построения представления новой задачи.
+            encoder=ml_collections.config_dict.placeholder(str),  # Имя энкодера либо отсутствие отдельного энкодера.
             
-            # Dataset hyperparameters.
-            dataset_class='GCDataset',  # Dataset class name ('GCDataset', 'Dataset', etc.).
-            relabeling=False,  # Whether to relabel rewards.
-            value_p_curgoal=0.2,  # Unused (defined for compatibility with GCDataset).
-            value_p_trajgoal=0.5,  # Unused (defined for compatibility with GCDataset).
-            value_p_randomgoal=0.3,  # Unused (defined for compatibility with GCDataset).
-            value_geom_sample=True,  # Unused (defined for compatibility with GCDataset).
-            actor_p_curgoal=0.0,  # Unused (defined for compatibility with GCDataset).
-            actor_p_trajgoal=1.0,  # Unused (defined for compatibility with GCDataset).
-            actor_p_randomgoal=0.0,  # Unused (defined for compatibility with GCDataset).
-            actor_geom_sample=False,  # Unused (defined for compatibility with GCDataset).
-            gc_negative=False,  # Unused (defined for compatibility with GCDataset).
-            p_aug=0.0,  # Probability of applying image augmentation.
-            frame_stack=ml_collections.config_dict.placeholder(int),  # Number of frames to stack.
+            # Настройки подготовки офлайн-набора данных.
+            dataset_class='GCDataset',  # Имя класса набора данных: GCDataset, Dataset или другой вариант.
+            relabeling=False,  # Пересчитывать ли награды для выбранной цели.
+            value_p_curgoal=0.2,  # Не используется; сохранено для совместимости с GCDataset.
+            value_p_trajgoal=0.5,  # Не используется; сохранено для совместимости с GCDataset.
+            value_p_randomgoal=0.3,  # Не используется; сохранено для совместимости с GCDataset.
+            value_geom_sample=True,  # Не используется; сохранено для совместимости с GCDataset.
+            actor_p_curgoal=0.0,  # Не используется; сохранено для совместимости с GCDataset.
+            actor_p_trajgoal=1.0,  # Не используется; сохранено для совместимости с GCDataset.
+            actor_p_randomgoal=0.0,  # Не используется; сохранено для совместимости с GCDataset.
+            actor_geom_sample=False,  # Не используется; сохранено для совместимости с GCDataset.
+            gc_negative=False,  # Не используется; сохранено для совместимости с GCDataset.
+            p_aug=0.0,  # Вероятность случайного преобразования изображения.
+            frame_stack=ml_collections.config_dict.placeholder(int),  # Количество объединяемых последовательных кадров.
 
         )
     )

@@ -1,9 +1,5 @@
 
-"""Multi-task baseline evaluation runner.
-
-Runs the existing scripts.run_baseline entry point on a fixed set of
-OGBench tasks and seeds. It does not change the baseline inference code.
-"""
+"""Серия запусков исходного агента по нескольким задачам и инициализациям."""
 
 from __future__ import annotations
 
@@ -22,6 +18,7 @@ def parse_args():
         nargs="+",
         type=int,
         default=[1, 2, 3, 4, 5],
+    help='Список задач в evaluate_baseline.',
     )
 
     parser.add_argument(
@@ -29,30 +26,35 @@ def parse_args():
         nargs="+",
         type=int,
         default=[0, 1, 2, 3, 4],
+    help='Список инициализаций среды для серии экспериментов.',
     )
 
     parser.add_argument(
         "--controller-seed",
         type=int,
         default=0,
+    help='Число, определяющее воспроизводимую случайность контроллера.',
     )
 
     parser.add_argument(
         "--temperature",
         type=float,
         default=0.0,
+    help='Случайность выбора действий; ноль означает детерминированный режим.',
     )
 
     parser.add_argument(
         "--log-file",
         type=Path,
         default=Path("results/evaluation_commands.json"),
+    help='Файл журнала с параметрами группового запуска.',
     )
 
     parser.add_argument(
         "--results-dir",
         type=Path,
         default=Path("results"),
+    help='Каталог сохранения эпизодов.',
     )
 
     return parser.parse_args()

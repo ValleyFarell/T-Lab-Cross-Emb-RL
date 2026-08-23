@@ -1,3 +1,5 @@
+"""Сохранение наблюдений, действий и диагностики каждого эпизода."""
+
 from pathlib import Path
 import json
 import time

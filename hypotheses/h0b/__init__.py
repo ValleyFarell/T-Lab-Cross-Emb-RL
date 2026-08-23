@@ -1,4 +1,4 @@
-"""H0-B: adaptive one- or two-switch planning."""
+"""H0-B: сравнение маршрутов через одну и две подцели."""
 
 from .planner import AdaptiveSwitchPlanner
 

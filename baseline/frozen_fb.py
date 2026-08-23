@@ -1,9 +1,4 @@
-"""Frozen inference wrapper around the provided FB pi-Switch checkpoint.
-
-This module intentionally delegates all mathematical operations to the original
-``FBpiSwitchAgent`` implementation.  It only adapts the T-Lab checkpoint
-packaging (``flags.json`` + ``params.pkl``) to the official Flax agent.
-"""
+"""Неизменяющая вычисления оболочка предоставленного замороженного FB-агента."""
 
 from __future__ import annotations
 
@@ -31,12 +26,7 @@ EXPECTED_PARAM_MODULES = frozenset(
 
 
 def load_checkpoint_config(checkpoint_dir: str | Path):
-    """Reconstruct the agent config from official defaults and saved flags.
-
-    The provided T-Lab ``flags.json`` stores only a subset of the full
-    ``fbpiswitch.get_config()``.  We therefore start from the official defaults
-    and overwrite only values that were actually saved.
-    """
+    """Объединяет исходные значения конфигурации с настройками сохранённого чекпоинта."""
 
     checkpoint_dir = Path(checkpoint_dir)
     flags_path = checkpoint_dir / "flags.json"
@@ -52,9 +42,9 @@ def load_checkpoint_config(checkpoint_dir: str | Path):
         )
 
     config = get_config()
-    # ConfigDict is deliberately left unlocked by the official main.py config
-    # flag.  Direct assignment preserves the official defaults for fields that
-    # are absent from T-Lab's compact flags.json.
+    # Официальная конфигурация намеренно допускает изменение отдельных полей.
+    # Перезаписываем только явно сохранённые значения, оставляя остальные настройки исходными.
+    # Это сохраняет исходные значения полей, отсутствующих в компактном flags.json.
     for key, value in saved_flags["agent"].items():
         config[key] = value
 
@@ -88,7 +78,7 @@ def _load_checkpoint_state(checkpoint_dir: Path) -> Mapping[str, Any]:
 
 
 class FrozenFB:
-    """Stable inference API over the original frozen FB pi-Switch agent."""
+    """Предоставляет безопасный интерфейс неизменённого замороженного FB-агента."""
 
     def __init__(self, agent: FBpiSwitchAgent, checkpoint_dir: Path, saved_flags: Mapping[str, Any]):
         self._agent = agent
@@ -103,11 +93,7 @@ class FrozenFB:
         *,
         config=None,
     ) -> "FrozenFB":
-        """Create the official agent architecture and restore T-Lab ``params.pkl``.
-
-        We intentionally do *not* call ``load_agent_from_frozen``: T-Lab's
-        ``params.pkl`` already contains F, B, low actor, and high actor.
-        """
+        """Восстанавливает архитектуру агента и загружает сохранённые параметры."""
 
         checkpoint_dir = Path(checkpoint_dir)
         if config is None:
@@ -124,7 +110,7 @@ class FrozenFB:
 
     @property
     def agent(self) -> FBpiSwitchAgent:
-        """Reference agent, exposed only for equivalence tests."""
+        """Возвращает исходный агент для проверки численной эквивалентности."""
 
         return self._agent
 
@@ -137,21 +123,19 @@ class FrozenFB:
         return int(self.config["latent_dim"])
 
     def normalize_latent(self, z):
-        """Use the original ``FBpiSwitchAgent.normalize_z`` implementation."""
+        """Использует исходную формулу нормализации намерения без изменений."""
 
         return self._agent.normalize_z(z)
 
     def backward_repr(self, observations):
-        """Return B(s) without adding any new normalization."""
+        """Возвращает исходное обратное представление B(s) без новой нормализации."""
 
         return self._agent.network.select("backward_repr")(observations)
 
     def forward_repr(self, observations, intentions):
-        """Return the raw two-member forward ensemble F(s, z).
+        """Возвращает все участники исходного ансамбля F(s,z) без их объединения.
 
-        No ensemble reduction is performed here because the official checkpoint
-        stores two forward ensemble members and different algorithms may need to
-        handle them explicitly.
+        Участники ансамбля не усредняются здесь: конкретный планировщик сам выбирает правило объединения их оценок.
         """
 
         return self._agent.network.select("forward_repr")(
@@ -161,7 +145,7 @@ class FrozenFB:
         )
 
     def infer_task_latent(self, zero_shot_batch):
-        """Reference task inference; delegates exactly to ``agent.infer_latent``."""
+        """Вызывает исходное построение представления задачи без изменения формулы."""
 
         return self._agent.infer_latent(zero_shot_batch)
 
@@ -173,12 +157,9 @@ class FrozenFB:
         seed,
         temperature: float = 0.0,
     ):
-        """Sample the original single-intention high actor.
+        """Воспроизводит выбор намерения исходной высокоуровневой политикой."""
 
-        Returns both the raw actor sample and the exact normalized intention that
-        is passed to the low-level actor in ``FBpiSwitchAgent.sample_actions``.
-        """
-
+        # Повторяем официальный путь выбора подцели, сохраняя исходный поток случайности.
         dist = self._agent.network.select("high_actor")(
             observation,
             task_latent,
@@ -197,7 +178,7 @@ class FrozenFB:
         seed,
         temperature: float = 0.0,
     ):
-        """Sample the original low-level actor and apply the official clipping."""
+        """Воспроизводит исходную низкоуровневую политику и ограничение действий."""
 
         dist = self._agent.network.select("actor")(
             observation,
@@ -205,6 +186,7 @@ class FrozenFB:
             goal_encoded=True,
             temperature=temperature,
         )
+        # Ограничение действия должно совпадать с исходным агентом до последнего шага.
         action = dist.sample(seed=seed)
         return jnp.clip(action, -1.0, 1.0)
 
@@ -216,7 +198,7 @@ class FrozenFB:
         seed,
         temperature: float = 0.0,
     ):
-        """Call the untouched official ``agent.sample_actions`` path."""
+        """Вызывает неизменённый официальный способ выбора действия."""
 
         return self._agent.sample_actions(
             observation,
@@ -226,7 +208,7 @@ class FrozenFB:
         )
 
     def validate_shapes(self, observation, task_latent) -> dict[str, tuple[int, ...]]:
-        """Run lightweight inference checks against the restored checkpoint."""
+        """Проверяет размерности восстановленного состояния и представления задачи."""
 
         observation = jnp.asarray(observation)
         task_latent = jnp.asarray(task_latent)

@@ -1,3 +1,5 @@
+"""Агрегация результатов эпизодов по методам и задачам."""
+
 
 from pathlib import Path
 import csv
@@ -23,8 +25,8 @@ def collect_runs(results_dir):
         if not REQUIRED_KEYS.issubset(item.keys()):
             continue
 
-        # Recover task id from directory structure if it is not stored
-        # in the episode summary.
+        # Если номер задачи не сохранён в сводке, восстанавливаем его
+        # по структуре каталога эпизода.
         if "task_id" not in item:
             for parent in path.parents:
                 if parent.name.startswith("baseline_task_"):

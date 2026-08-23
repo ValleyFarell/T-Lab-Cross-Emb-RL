@@ -1,3 +1,5 @@
+"""Исходные архитектуры политик, функций ценности и представлений."""
+
 from typing import Any, Optional, Sequence
 import distrax
 import flax.linen as nn
@@ -5,12 +7,12 @@ import jax.numpy as jnp
 
 
 def default_init(scale=1.0):
-    """Default kernel initializer."""
+    """Возвращает стандартный способ начальной инициализации весов."""
     return nn.initializers.variance_scaling(scale, 'fan_avg', 'uniform')
 
 
 def ensemblize(cls, num_qs, out_axes=0, **kwargs):
-    """Ensemblize a module."""
+    """Создаёт несколько независимых экземпляров вычислительного модуля."""
     return nn.vmap(
         cls,
         variable_axes={'params': 0},
@@ -23,22 +25,14 @@ def ensemblize(cls, num_qs, out_axes=0, **kwargs):
 
 
 class Identity(nn.Module):
-    """Identity layer."""
+    """Возвращает вход без преобразования."""
 
     def __call__(self, x):
         return x
 
 
 class MLP(nn.Module):
-    """Multi-layer perceptron.
-
-    Attributes:
-        hidden_dims: Hidden layer dimensions.
-        activations: Activation function.
-        activate_final: Whether to apply activation to the final layer.
-        kernel_init: Kernel initializer.
-        layer_norm: Whether to apply layer normalization.
-    """
+    """Вычисляет многослойную полносвязную нейронную сеть."""
 
     hidden_dims: Sequence[int]
     activations: Any = nn.gelu
@@ -49,7 +43,7 @@ class MLP(nn.Module):
 
     @nn.compact
     def __call__(self, x):
-        # This architecture is adapted from the HILP implementation: https://github.com/seohongpark/HILP/blob/be2431bbb75e3b13cbdb1dec11776c42ef0f1593/hilp_zsrl/url_benchmark/agent/fb_modules.py#L148-L193.
+        # Архитектура адаптирована из исходной реализации HILP: https://github.com/seohongpark/HILP/blob/be2431bbb75e3b13cbdb1dec11776c42ef0f1593/hilp_zsrl/url_benchmark/agent/fb_modules.py#L148-L193.
         for i, size in enumerate(self.hidden_dims):
             x = nn.Dense(size, kernel_init=self.kernel_init)(x)
             if i == 0:
@@ -61,10 +55,7 @@ class MLP(nn.Module):
         return x
 
 class LengthNormalize(nn.Module):
-    """Length normalization layer.
-
-    It normalizes the input along the last dimension to have a length of sqrt(dim).
-    """
+    """Приводит вектор к заданной норме."""
 
     @nn.compact
     def __call__(self, x):
@@ -72,26 +63,14 @@ class LengthNormalize(nn.Module):
     
 
 class TransformedWithMode(distrax.Transformed):
-    """Transformed distribution with mode calculation."""
+    """Дополняет преобразованное распределение вычислением наиболее вероятного значения."""
 
     def mode(self):
         return self.bijector.forward(self.distribution.mode())
 
 
 class GCActor(nn.Module):
-    """Goal-conditioned actor.
-
-    Attributes:
-        hidden_dims: Hidden layer dimensions.
-        action_dim: Action dimension.
-        log_std_min: Minimum value of log standard deviation.
-        log_std_max: Maximum value of log standard deviation.
-        tanh_squash: Whether to squash the action with tanh.
-        state_dependent_std: Whether to use state-dependent standard deviation.
-        const_std: Whether to use constant standard deviation.
-        final_fc_init_scale: Initial scale of the final fully-connected layer.
-        gc_encoder: Optional GCEncoder module to encode the inputs.
-    """
+    """Выбирает действие с учётом текущего состояния и поставленной цели."""
 
     hidden_dims: Sequence[int]
     action_dim: int
@@ -127,13 +106,13 @@ class GCActor(nn.Module):
         goal_encoded=False,
         temperature=1.0,
     ):
-        """Return the action distribution.
+        """Вычисляет результат модуля для переданных входных данных.
 
-        Args:
-            observations: Observations.
-            goals: Goals (optional).
-            goal_encoded: Whether the goals are already encoded (optional).
-            temperature: Scaling factor for the standard deviation (optional).
+        Параметры:
+            observations: блок полных состояний робота.
+            goals: целевые наблюдения или их представления.
+            goal_encoded: параметр исходного вычисления.
+            temperature: степень случайности выбора действия.
         """
         if self.gc_encoder is not None:
             inputs = self.gc_encoder(observations, goals, goal_encoded=goal_encoded)
@@ -163,17 +142,7 @@ class GCActor(nn.Module):
 
 
 class GCValue(nn.Module):
-    """Goal-conditioned value/critic function.
-
-    This module can be used for both value V(s, g) and critic Q(s, a, g) functions.
-
-    Attributes:
-        hidden_dims: Hidden layer dimensions.
-        value_dim: Value dimension.
-        layer_norm: Whether to apply layer normalization.
-        num_ensembles: Number of ensemble components.
-        gc_encoder: GCEncoder module to encode the inputs (optional).
-    """
+    """Оценивает ценность состояния при заданной цели."""
 
     hidden_dims: Sequence[int]
     value_dim: int = 1
@@ -196,13 +165,14 @@ class GCValue(nn.Module):
         )
 
     def __call__(self, observations, goals=None, actions=None, goal_actions=None, goal_encoded=False):
-        """Return the value/critic function.
+        """Вычисляет результат модуля для переданных входных данных.
 
-        Args:
-            observations: Observations.
-            goals: Goals (optional).
-            actions: Actions (optional).
-            goal_encoded: Whether the goals are already encoded (optional).
+        Параметры:
+            observations: блок полных состояний робота.
+            goals: целевые наблюдения или их представления.
+            actions: параметр исходного вычисления.
+            goal_actions: параметр исходного вычисления.
+            goal_encoded: параметр исходного вычисления.
         """
         if self.gc_encoder is not None:
             inputs = [self.gc_encoder(observations, goals, goal_encoded=goal_encoded)]
@@ -224,20 +194,7 @@ class GCValue(nn.Module):
         return v
 
 class GCBilinearValue(nn.Module):
-    """Goal-conditioned bilinear value/critic function.
-
-    This module computes the value function as V(s, g) = phi(s)^T psi(g) / sqrt(d) or the critic function as
-    Q(s, a, g) = phi(s, a)^T psi(g) / sqrt(d), where phi and psi output d-dimensional vectors.
-
-    Attributes:
-        hidden_dims: Hidden layer dimensions.
-        latent_dim: Latent dimension.
-        layer_norm: Whether to apply layer normalization.
-        ensemble: Whether to ensemble the value function.
-        value_exp: Whether to exponentiate the value. Useful for contrastive learning.
-        state_encoder: Optional state encoder.
-        goal_encoder: Optional goal encoder.
-    """
+    """Оценивает ценность состояния и цели билинейной моделью."""
 
     hidden_dims: Sequence[int]
     latent_dim: int
@@ -260,12 +217,12 @@ class GCBilinearValue(nn.Module):
         )
         
     def __call__(self, observations, goals, intents=None):
-        """Return the value/critic function.
+        """Вычисляет результат модуля для переданных входных данных.
 
-        Args:
-            observations: Observations.
-            goals: Goals.
-            intents: Intentions (optional).
+        Параметры:
+            observations: блок полных состояний робота.
+            goals: целевые наблюдения или их представления.
+            intents: параметр исходного вычисления.
         """
         if intents is None:
             intents = goals
@@ -287,17 +244,7 @@ class GCBilinearValue(nn.Module):
     
     
 class ICVFValue(nn.Module):
-    """ICVF value/critic function.
-
-    This module computes the value function using the following parameterizations: V(s, g, z) = phi(s)^T T(z) psi(g)
-
-    Attributes:
-        hidden_dims: Hidden layer dimensions.
-        value_dim: Value dimension.
-        layer_norm: Whether to apply layer normalization.
-        num_ensembles: Number of ensemble components.
-        gcic_encoder: GCIntentionEncoder module to encode the inputs (optional).
-    """
+    """Вычисляет ценность при заданном состоянии, цели и намерении."""
 
     hidden_dims: Sequence[int]
     value_dim: int = 1
@@ -336,22 +283,21 @@ class ICVFValue(nn.Module):
                  goal_encoded=False, intention_encoded=False,
                  phis=None, psis=None, transitions=None,
                  info=False):
-        """Return the value/critic function.
+        """Вычисляет результат модуля для переданных входных данных.
 
-        Args:
-            observations: Observations.
-            goals: Goals (optional).
-            intentions: Intentions (optional).
-            actions: Actions (optional).
-            goal_actions: Goal actions (optional).
-            intention_actions: Intention actions (optional).
-            goal_encoded: Whether the goals are already encoded (optional).
-            intention_encoded: Whether the intentions are already encoded (optional).
-            phis: Precomputed phis representations (optional).
-            psis: Precomputed psis representations (optional).
-            transitions: precomputed transitions (optional)
-            info: Whether to return phis, psis, and transitions.
-            
+        Параметры:
+            observations: блок полных состояний робота.
+            goals: целевые наблюдения или их представления.
+            intentions: одно или несколько намерений политики.
+            actions: параметр исходного вычисления.
+            goal_actions: параметр исходного вычисления.
+            intention_actions: параметр исходного вычисления.
+            goal_encoded: параметр исходного вычисления.
+            intention_encoded: параметр исходного вычисления.
+            phis: параметр исходного вычисления.
+            psis: параметр исходного вычисления.
+            transitions: параметр исходного вычисления.
+            info: параметр исходного вычисления.
         """
         psi_inputs = []
         transition_inputs = []

@@ -1,4 +1,4 @@
-"""Exact single-intention FB pi-Switch controller."""
+"""Точное воспроизведение исходного контроллера FB π-Switch."""
 
 from __future__ import annotations
 

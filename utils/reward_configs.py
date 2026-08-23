@@ -1,8 +1,10 @@
+"""Настройки пространственных наград для задач AntMaze."""
+
 import numpy as np
 X = -np.inf
 L = 5.0 
 G = 10.0
-CONST_goal_tol = 0.5  # line 86 in ogbench/ogbench/locomaze/maze.py
+CONST_goal_tol = 0.5  # См. строку 86 исходной реализации ogbench/ogbench/locomaze/maze.py.
 
 BASE_MAPS = {
     "medium": [

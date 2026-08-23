@@ -1,0 +1,17 @@
+{
+  "environment": "ogbench-antmaze-medium-navigate-v0",
+  "checkpoint": "checkpoints\\antmaze-medium-navigate-v0",
+  "observation_dim": 29,
+  "embedding_dim": 4,
+  "intention_dim": 128,
+  "state_count": 40000,
+  "pair_count": 80000,
+  "seed": 0,
+  "validation_split": "contiguous_state_blocks",
+  "teacher_target": "mean_ensemble(F(s, normalize(B(g)))) dot normalize(B(g))",
+  "frozen_components": [
+    "F",
+    "B",
+    "low_level_policy"
+  ]
+}

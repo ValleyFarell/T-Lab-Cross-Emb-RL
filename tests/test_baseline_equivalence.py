@@ -1,4 +1,4 @@
-"""Numerical equivalence between the wrapper path and official sample_actions."""
+"""Проверки корректности компонента baseline equivalence и его взаимодействия со стендом."""
 
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ def _setup():
 
 def test_temperature_zero_matches_official_sample_actions():
     frozen_fb, controller, train_dataset, task_latent = _setup()
-    # Deterministic, spread-out states; no dependence on Dataset.sample RNG.
+    # Берём равномерно распределённые состояния без случайности Dataset.sample.
     idxs = np.linspace(0, train_dataset.size - 1, num=16, dtype=np.int64)
     observations = np.asarray(train_dataset["observations"])[idxs]
 

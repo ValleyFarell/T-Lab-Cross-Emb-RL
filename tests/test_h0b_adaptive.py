@@ -1,4 +1,4 @@
-"""Contract tests for H0-B adaptive switching depth."""
+"""Проверки корректности компонента h0b adaptive и его взаимодействия со стендом."""
 
 from __future__ import annotations
 

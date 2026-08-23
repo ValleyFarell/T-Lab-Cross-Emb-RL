@@ -1,4 +1,4 @@
-"""Deterministic episode runner with controller-agnostic diagnostics."""
+"""Единый воспроизводимый запуск эпизода для всех контроллеров."""
 
 from __future__ import annotations
 

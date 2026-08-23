@@ -13,85 +13,85 @@
     "candidate": 0
   },
   "overall": {
-    "number_of_pairs": 10,
-    "baseline_success_rate": 0.9,
-    "candidate_success_rate": 0.9,
+    "number_of_pairs": 30,
+    "baseline_success_rate": 0.9333333333333333,
+    "candidate_success_rate": 0.9333333333333333,
     "success_rate_delta": 0.0,
     "success_rate_delta_ci95": [
-      -0.3,
-      0.3
+      -0.13333333333333333,
+      0.13333333333333333
     ],
     "discordant_pairs": {
-      "baseline_only_success": 1,
-      "candidate_only_success": 1,
+      "baseline_only_success": 2,
+      "candidate_only_success": 2,
       "mcnemar_exact_p": 1.0
     },
-    "both_success": 8,
+    "both_success": 26,
     "both_failure": 0,
     "steps_delta_both_success": {
-      "mean": -328.0,
-      "median": -251.5,
+      "mean": -112.38461538461539,
+      "median": -176.5,
       "ci95_mean": [
-        -503.25625,
-        -216.25
+        -225.3096153846154,
+        0.424999999999972
       ]
     },
     "path_length_delta_both_success": {
-      "mean": -45.89110432145977,
-      "median": -34.55807095046096,
+      "mean": -16.80514855145144,
+      "median": -25.523655685235337,
       "ci95_mean": [
-        -73.10943978707166,
-        -26.097724142690762
+        -32.987020356912,
+        -1.3228634911962436
       ]
     },
     "final_distance_delta_all": {
-      "mean": -0.3189336554534814,
-      "median": -0.0004029985451856899,
+      "mean": -0.11003826710671091,
+      "median": 0.006885522275692307,
       "ci95_mean": [
-        -1.5713223385579407,
-        0.5904222339643416
+        -0.71664357624346,
+        0.4810636188476488
       ]
     }
   },
   "per_scenario": {
     "custom-0_0-to-4_4": {
-      "number_of_pairs": 10,
-      "baseline_success_rate": 0.9,
-      "candidate_success_rate": 0.9,
+      "number_of_pairs": 30,
+      "baseline_success_rate": 0.9333333333333333,
+      "candidate_success_rate": 0.9333333333333333,
       "success_rate_delta": 0.0,
       "success_rate_delta_ci95": [
-        -0.3,
-        0.3
+        -0.13333333333333333,
+        0.13333333333333333
       ],
       "discordant_pairs": {
-        "baseline_only_success": 1,
-        "candidate_only_success": 1,
+        "baseline_only_success": 2,
+        "candidate_only_success": 2,
         "mcnemar_exact_p": 1.0
       },
-      "both_success": 8,
+      "both_success": 26,
       "both_failure": 0,
       "steps_delta_both_success": {
-        "mean": -328.0,
-        "median": -251.5,
+        "mean": -112.38461538461539,
+        "median": -176.5,
         "ci95_mean": [
-          -503.25625,
-          -216.25
+          -225.3096153846154,
+          0.424999999999972
         ]
       },
       "path_length_delta_both_success": {
-        "mean": -45.89110432145977,
-        "median": -34.55807095046096,
+        "mean": -16.80514855145144,
+        "median": -25.523655685235337,
         "ci95_mean": [
-          -73.10943978707166,
-          -26.097724142690762
+          -32.987020356912,
+          -1.3228634911962436
         ]
       },
       "final_distance_delta_all": {
-        "mean": -0.3189336554534814,
-        "median": -0.0004029985451856899,
+        "mean": -0.11003826710671091,
+        "median": 0.006885522275692307,
         "ci95_mean": [
-          -1.5713223385579407,
-          0.5904222339643416
+          -0.71664357624346,
+          0.4810636188476488
         ]
       }
     }
@@ -144,7 +144,7 @@
         "steps": 412,
         "path_length": 64.12113032763237,
         "final_distance": 0.494280587461473,
-        "run_dir": "results_diag_baseline_v1\\baseline_custom-0_0-to-4_4\\runs\\000001"
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000001"
       },
       "candidate": {
         "scenario_id": "custom-0_0-to-4_4",
@@ -177,7 +177,7 @@
         "steps": 68,
         "path_length": 8.402309839334324,
         "final_distance": 0.4574387524180705,
-        "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000001"
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000001"
       }
     },
     {
@@ -227,7 +227,7 @@
         "steps": 806,
         "path_length": 106.20863965517722,
         "final_distance": 0.49926960179661606,
-        "run_dir": "results_diag_baseline_v1\\baseline_custom-0_0-to-4_4\\runs\\000002"
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000002"
       },
       "candidate": {
         "scenario_id": "custom-0_0-to-4_4",
@@ -260,7 +260,837 @@
         "steps": 492,
         "path_length": 54.73178147117355,
         "final_distance": 0.3836019255792212,
-        "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000002"
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000002"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        10,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 10,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          0.542641286533492,
+          -0.958496101281197
+        ],
+        "success": true,
+        "steps": 266,
+        "path_length": 39.27230848879113,
+        "final_distance": 0.4318179102754259,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000011"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 10,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          0.542641286533492,
+          -0.958496101281197
+        ],
+        "success": true,
+        "steps": 75,
+        "path_length": 10.408438166935548,
+        "final_distance": 0.485746620733978,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000011"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        11,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 11,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          -0.6394606222464616,
+          -0.9610495170247508
+        ],
+        "success": true,
+        "steps": 445,
+        "path_length": 56.526734308793486,
+        "final_distance": 0.44102801276612125,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000012"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 11,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          -0.6394606222464616,
+          -0.9610495170247508
+        ],
+        "success": true,
+        "steps": 374,
+        "path_length": 45.13776548169159,
+        "final_distance": 0.351588174526389,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000012"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        12,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 12,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          -0.6916743152406553,
+          0.4800993930308095
+        ],
+        "success": true,
+        "steps": 226,
+        "path_length": 32.89480814719372,
+        "final_distance": 0.4372127509482521,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000013"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 12,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          -0.6916743152406553,
+          0.4800993930308095
+        ],
+        "success": true,
+        "steps": 60,
+        "path_length": 7.949875451238585,
+        "final_distance": 0.3627788510193693,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000013"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        13,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 13,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          0.5554048211476403,
+          -0.5249175599301754
+        ],
+        "success": true,
+        "steps": 271,
+        "path_length": 38.25821695274905,
+        "final_distance": 0.4523937551515917,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000014"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 13,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          0.5554048211476403,
+          -0.5249175599301754
+        ],
+        "success": true,
+        "steps": 91,
+        "path_length": 11.110854426098026,
+        "final_distance": 0.4461864978505702,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000014"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        14,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 14,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          0.027886687545380484,
+          0.5463301041585935
+        ],
+        "success": true,
+        "steps": 393,
+        "path_length": 54.33646219749678,
+        "final_distance": 0.44550411636695647,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000015"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 14,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          0.027886687545380484,
+          0.5463301041585935
+        ],
+        "success": true,
+        "steps": 524,
+        "path_length": 76.53645585514849,
+        "final_distance": 0.4464868427435849,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000015"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        15,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 15,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          0.6976353945371574,
+          -0.642208150158003
+        ],
+        "success": false,
+        "steps": 1000,
+        "path_length": 55.00086402550762,
+        "final_distance": 5.801514998928963,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000016"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 15,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          0.6976353945371574,
+          -0.642208150158003
+        ],
+        "success": true,
+        "steps": 151,
+        "path_length": 21.96369860413694,
+        "final_distance": 0.47402739108248,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000016"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        16,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 16,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          -0.5534178416929223,
+          0.046326682801352215
+        ],
+        "success": true,
+        "steps": 58,
+        "path_length": 7.583353993735173,
+        "final_distance": 0.49880802535693475,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000017"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 16,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          -0.5534178416929223,
+          0.046326682801352215
+        ],
+        "success": true,
+        "steps": 291,
+        "path_length": 36.54267500560453,
+        "final_distance": 0.4242186485135941,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000017"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        17,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 17,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          -0.4106699946257806,
+          0.06117351121058823
+        ],
+        "success": true,
+        "steps": 548,
+        "path_length": 65.59485658218313,
+        "final_distance": 0.45669094505127256,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000018"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 17,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          -0.4106699946257806,
+          0.06117351121058823
+        ],
+        "success": true,
+        "steps": 95,
+        "path_length": 9.973180054729422,
+        "final_distance": 0.4631171729700251,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000018"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        18,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 18,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          0.30074848347918337,
+          0.010906747469685785
+        ],
+        "success": true,
+        "steps": 465,
+        "path_length": 70.51430319029296,
+        "final_distance": 0.4485704559168011,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000019"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 18,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          0.30074848347918337,
+          0.010906747469685785
+        ],
+        "success": true,
+        "steps": 301,
+        "path_length": 38.2381910614934,
+        "final_distance": 0.36727906704671587,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000019"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        19,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 19,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          -0.8049327965010968,
+          0.5224994333497126
+        ],
+        "success": true,
+        "steps": 298,
+        "path_length": 47.431700576739814,
+        "final_distance": 0.3631209531261871,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000020"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 19,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          -0.8049327965010968,
+          0.5224994333497126
+        ],
+        "success": true,
+        "steps": 871,
+        "path_length": 118.97645249051484,
+        "final_distance": 0.4962867057064209,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000020"
       }
     },
     {
@@ -310,7 +1140,7 @@
         "steps": 356,
         "path_length": 49.63035742839726,
         "final_distance": 0.3988280744553723,
-        "run_dir": "results_diag_baseline_v1\\baseline_custom-0_0-to-4_4\\runs\\000003"
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000003"
       },
       "candidate": {
         "scenario_id": "custom-0_0-to-4_4",
@@ -343,7 +1173,837 @@
         "steps": 111,
         "path_length": 14.760277418555253,
         "final_distance": 0.37163714910062856,
-        "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000003"
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000003"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        20,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 20,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          0.17626160215454845,
+          0.7954274558188359
+        ],
+        "success": true,
+        "steps": 502,
+        "path_length": 74.06708299939437,
+        "final_distance": 0.4031680273978724,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000021"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 20,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          0.17626160215454845,
+          0.7954274558188359
+        ],
+        "success": true,
+        "steps": 619,
+        "path_length": 89.15940658889042,
+        "final_distance": 0.46344203568335723,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000021"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        21,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 21,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          -0.9025502383817454,
+          -0.4217806804203663
+        ],
+        "success": true,
+        "steps": 65,
+        "path_length": 8.488953398072397,
+        "final_distance": 0.39603041810182926,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000022"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 21,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          -0.9025502383817454,
+          -0.4217806804203663
+        ],
+        "success": true,
+        "steps": 143,
+        "path_length": 18.157476075900043,
+        "final_distance": 0.35668900350554594,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000022"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        22,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 22,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          -0.5830789252823148,
+          -0.036637876473268216
+        ],
+        "success": true,
+        "steps": 163,
+        "path_length": 21.24871936616477,
+        "final_distance": 0.48208151185758813,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000023"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 22,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          -0.5830789252823148,
+          -0.036637876473268216
+        ],
+        "success": true,
+        "steps": 372,
+        "path_length": 46.69860938984628,
+        "final_distance": 0.4894263284902202,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000023"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        23,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 23,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          0.034595767693178514,
+          0.8939252076296282
+        ],
+        "success": true,
+        "steps": 299,
+        "path_length": 33.24238418725609,
+        "final_distance": 0.39530828336845747,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000024"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 23,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          0.034595767693178514,
+          0.8939252076296282
+        ],
+        "success": true,
+        "steps": 445,
+        "path_length": 54.983436798390834,
+        "final_distance": 0.47798558486272474,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000024"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        24,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 24,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          0.920034606671837,
+          0.3990240998991521
+        ],
+        "success": true,
+        "steps": 231,
+        "path_length": 34.24122964338927,
+        "final_distance": 0.3462454654366283,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000025"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 24,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          0.920034606671837,
+          0.3990240998991521
+        ],
+        "success": true,
+        "steps": 529,
+        "path_length": 75.95042487547366,
+        "final_distance": 0.41647297831847857,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000025"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        25,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 25,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          0.7402482732544238,
+          0.16455385734511951
+        ],
+        "success": true,
+        "steps": 344,
+        "path_length": 50.4231292844387,
+        "final_distance": 0.4828823155835515,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000026"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 25,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          0.7402482732544238,
+          0.16455385734511951
+        ],
+        "success": false,
+        "steps": 1000,
+        "path_length": 62.06178695274067,
+        "final_distance": 5.534099387765569,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000026"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        26,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 26,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          -0.3841300947500583,
+          0.03878295861060144
+        ],
+        "success": true,
+        "steps": 668,
+        "path_length": 92.8727147587804,
+        "final_distance": 0.43101553057682873,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000027"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 26,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          -0.3841300947500583,
+          0.03878295861060144
+        ],
+        "success": true,
+        "steps": 67,
+        "path_length": 8.157096284862531,
+        "final_distance": 0.3758404565967721,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000027"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        27,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 27,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          -0.14855717896220844,
+          0.6291674809891052
+        ],
+        "success": true,
+        "steps": 318,
+        "path_length": 46.841670085231705,
+        "final_distance": 0.3039071624053663,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000028"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 27,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          -0.14855717896220844,
+          0.6291674809891052
+        ],
+        "success": true,
+        "steps": 142,
+        "path_length": 20.73929141071617,
+        "final_distance": 0.43373156031686855,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000028"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        28,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 28,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          0.45802748457823816,
+          0.12247920465528228
+        ],
+        "success": true,
+        "steps": 264,
+        "path_length": 41.93146133258587,
+        "final_distance": 0.39755804933322547,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000029"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 28,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          0.45802748457823816,
+          0.12247920465528228
+        ],
+        "success": true,
+        "steps": 60,
+        "path_length": 8.65718078725619,
+        "final_distance": 0.4214497393816909,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000029"
+      }
+    },
+    {
+      "scenario_key": [
+        "custom-0_0-to-4_4",
+        null,
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        29,
+        0,
+        0.0
+      ],
+      "baseline": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 29,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fbpiswitch_baseline",
+        "start_xy": [
+          0.7275199711401659,
+          -0.4301880695447464
+        ],
+        "success": true,
+        "steps": 241,
+        "path_length": 36.39257421780866,
+        "final_distance": 0.389358625587121,
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000030"
+      },
+      "candidate": {
+        "scenario_id": "custom-0_0-to-4_4",
+        "task_id": null,
+        "start_ij": [
+          1,
+          1
+        ],
+        "goal_ij": [
+          2,
+          2
+        ],
+        "nominal_start_xy": [
+          0.0,
+          0.0
+        ],
+        "goal_xy": [
+          4.0,
+          4.0
+        ],
+        "environment_seed": 29,
+        "controller_seed": 0,
+        "temperature": 0.0,
+        "method": "fb_direct_goal",
+        "start_xy": [
+          0.7275199711401659,
+          -0.4301880695447464
+        ],
+        "success": true,
+        "steps": 364,
+        "path_length": 54.55769645580895,
+        "final_distance": 0.40555280775610475,
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000030"
       }
     },
     {
@@ -393,7 +2053,7 @@
         "steps": 871,
         "path_length": 106.9123934119901,
         "final_distance": 0.337269049118014,
-        "run_dir": "results_diag_baseline_v1\\baseline_custom-0_0-to-4_4\\runs\\000004"
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000004"
       },
       "candidate": {
         "scenario_id": "custom-0_0-to-4_4",
@@ -426,7 +2086,7 @@
         "steps": 688,
         "path_length": 100.78837381751121,
         "final_distance": 0.44975661267541606,
-        "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000004"
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000004"
       }
     },
     {
@@ -476,7 +2136,7 @@
         "steps": 272,
         "path_length": 37.059295055808334,
         "final_distance": 0.4274325811599787,
-        "run_dir": "results_diag_baseline_v1\\baseline_custom-0_0-to-4_4\\runs\\000005"
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000005"
       },
       "candidate": {
         "scenario_id": "custom-0_0-to-4_4",
@@ -509,7 +2169,7 @@
         "steps": 95,
         "path_length": 13.621908295940118,
         "final_distance": 0.37799932285578447,
-        "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000005"
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000005"
       }
     },
     {
@@ -559,7 +2219,7 @@
         "steps": 264,
         "path_length": 41.83800471214626,
         "final_distance": 0.4037558878733571,
-        "run_dir": "results_diag_baseline_v1\\baseline_custom-0_0-to-4_4\\runs\\000006"
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000006"
       },
       "candidate": {
         "scenario_id": "custom-0_0-to-4_4",
@@ -592,7 +2252,7 @@
         "steps": 59,
         "path_length": 7.591942821066347,
         "final_distance": 0.48228974112750544,
-        "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000006"
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000006"
       }
     },
     {
@@ -642,7 +2302,7 @@
         "steps": 1000,
         "path_length": 24.79487943068711,
         "final_distance": 5.747369106683822,
-        "run_dir": "results_diag_baseline_v1\\baseline_custom-0_0-to-4_4\\runs\\000007"
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000007"
       },
       "candidate": {
         "scenario_id": "custom-0_0-to-4_4",
@@ -675,7 +2335,7 @@
         "steps": 327,
         "path_length": 42.02620445395597,
         "final_distance": 0.4743856292963017,
-        "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000007"
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000007"
       }
     },
     {
@@ -725,7 +2385,7 @@
         "steps": 250,
         "path_length": 37.48959401516616,
         "final_distance": 0.3539200965489715,
-        "run_dir": "results_diag_baseline_v1\\baseline_custom-0_0-to-4_4\\runs\\000008"
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000008"
       },
       "candidate": {
         "scenario_id": "custom-0_0-to-4_4",
@@ -758,7 +2418,7 @@
         "steps": 1000,
         "path_length": 145.05014020313686,
         "final_distance": 2.3387445718507998,
-        "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000008"
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000008"
       }
     },
     {
@@ -808,7 +2468,7 @@
         "steps": 440,
         "path_length": 59.37360325311107,
         "final_distance": 0.3830736094224345,
-        "run_dir": "results_diag_baseline_v1\\baseline_custom-0_0-to-4_4\\runs\\000009"
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000009"
       },
       "candidate": {
         "scenario_id": "custom-0_0-to-4_4",
@@ -841,7 +2501,7 @@
         "steps": 182,
         "path_length": 25.367406121464434,
         "final_distance": 0.4936234068171246,
-        "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000009"
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000009"
       }
     },
     {
@@ -891,7 +2551,7 @@
         "steps": 988,
         "path_length": 139.07368338656198,
         "final_distance": 0.43470529647255696,
-        "run_dir": "results_diag_baseline_v1\\baseline_custom-0_0-to-4_4\\runs\\000010"
+        "run_dir": "results\\results_baseline_0_0_to_4_4\\baseline_custom-0_0-to-4_4\\runs\\000010"
       },
       "candidate": {
         "scenario_id": "custom-0_0-to-4_4",
@@ -924,7 +2584,7 @@
         "steps": 90,
         "path_length": 11.824272874101183,
         "final_distance": 0.4610902247369293,
-        "run_dir": "results_diag_direct_v1\\direct_goal_custom-0_0-to-4_4\\runs\\000010"
+        "run_dir": "results\\direct_goal_custom-0_0-to-4_4\\runs\\000010"
       }
     }
   ]

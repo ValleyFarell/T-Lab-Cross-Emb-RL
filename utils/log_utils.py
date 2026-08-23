@@ -1,3 +1,5 @@
+"""Сохранение метрик, изображений, видео и конфигурации запуска."""
+
 import os
 import tempfile
 from datetime import datetime
@@ -10,7 +12,7 @@ from PIL import Image, ImageEnhance
 
 
 class CsvLogger:
-    """CSV logger for logging metrics to a CSV file."""
+    """Сохраняет значения метрик в таблицу CSV."""
 
     def __init__(self, path):
         self.path = path
@@ -38,7 +40,7 @@ class CsvLogger:
 
 
 def get_exp_name(seed):
-    """Return the experiment name."""
+    """Формирует имя текущего эксперимента."""
     exp_name = ''
     exp_name += f'sd{seed:03d}_'
     if 'SLURM_JOB_ID' in os.environ:
@@ -51,7 +53,7 @@ def get_exp_name(seed):
 
 
 def get_flag_dict():
-    """Return the dictionary of flags."""
+    """Собирает параметры запуска в словарь."""
     flag_dict = {k: getattr(flags.FLAGS, k) for k in flags.FLAGS if '.' not in k}
     for k in flag_dict:
         if isinstance(flag_dict[k], ml_collections.ConfigDict):
@@ -67,8 +69,8 @@ def setup_wandb(
     name=None,
     mode='online',
 ):
-    """Set up Weights & Biases for logging."""
-    # wandb_output_dir = tempfile.mkdtemp()
+    """Настраивает внешний журнал метрик и конфигурации эксперимента."""
+    # Ранее использовавшийся вариант: wandb_output_dir = tempfile.mkdtemp()
     tags = [group] if group is not None else None
 
     init_kwargs = dict(
@@ -93,14 +95,14 @@ def setup_wandb(
 
 
 def reshape_video(v, n_cols=None):
-    """Helper function to reshape videos."""
+    """Приводит видеокадры к формату сохранения и визуализации."""
     if v.ndim == 4:
         v = v[None,]
 
     _, t, h, w, c = v.shape
 
     if n_cols is None:
-        # Set n_cols to the square root of the number of videos.
+        # Выбираем число столбцов близким к квадратному корню из числа видео.
         n_cols = np.ceil(np.sqrt(v.shape[0])).astype(int)
     if v.shape[0] % n_cols != 0:
         len_addition = n_cols - v.shape[0] % n_cols
@@ -115,20 +117,19 @@ def reshape_video(v, n_cols=None):
 
 
 def get_wandb_video(renders=None, n_cols=None, fps=15):
-    """Return a Weights & Biases video.
+    """Подготавливает видео для внешнего журнала экспериментов.
 
-    It takes a list of videos and reshapes them into a single video with the specified number of columns.
-
-    Args:
-        renders: List of videos. Each video should be a numpy array of shape (t, h, w, c).
-        n_cols: Number of columns for the reshaped video. If None, it is set to the square root of the number of videos.
+    Параметры:
+        renders: параметр исходного вычисления.
+        n_cols: параметр исходного вычисления.
+        fps: параметр исходного вычисления.
     """
-    # Pad videos to the same length.
+    # Дополняем все видео до одинаковой длительности.
     max_length = max([len(render) for render in renders])
     for i, render in enumerate(renders):
         assert render.dtype == np.uint8
 
-        # Decrease brightness of the padded frames.
+        # Уменьшаем яркость добавленных кадров.
         final_frame = render[-1]
         final_image = Image.fromarray(final_frame)
         enhancer = ImageEnhance.Brightness(final_image)
@@ -138,7 +139,7 @@ def get_wandb_video(renders=None, n_cols=None, fps=15):
         pad = np.repeat(final_frame[np.newaxis, ...], max_length - len(render), axis=0)
         renders[i] = np.concatenate([render, pad], axis=0)
 
-        # Add borders.
+        # Добавляем границы между изображениями.
         renders[i] = np.pad(renders[i], ((0, 0), (1, 1), (1, 1), (0, 0)), mode='constant', constant_values=0)
     renders = np.array(renders)  # (n, t, h, w, c)
 

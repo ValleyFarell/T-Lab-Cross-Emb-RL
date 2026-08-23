@@ -1,3 +1,5 @@
+"""Проверки корректности компонента goal capture и его взаимодействия со стендом."""
+
 import numpy as np
 
 from evaluation.goal_capture import (

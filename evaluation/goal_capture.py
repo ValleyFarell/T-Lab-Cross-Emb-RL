@@ -1,9 +1,4 @@
-"""Pure helpers for the local goal-capture diagnostic.
-
-The functions in this module do not import JAX, MuJoCo, or OGBench.  Keeping
-state selection and metric computation independent from the runtime makes the
-experiment easy to inspect and unit-test.
-"""
+"""Вычисление метрик продолжений из сохранённых состояний возле цели."""
 
 from __future__ import annotations
 
@@ -14,7 +9,7 @@ import numpy as np
 
 @dataclass(frozen=True)
 class EntryState:
-    """One saved physical observation selected for continuation branching."""
+    """Хранит сохранённое физическое состояние для ветвления возле цели."""
 
     observation_index: int
     observation: np.ndarray
@@ -28,12 +23,7 @@ def find_first_entry_state(
     entry_radius: float = 1.0,
     success_radius: float = 0.5,
 ) -> EntryState | None:
-    """Return the first saved state inside ``entry_radius`` but outside success.
-
-    Trajectories in the stand contain observations *before* actions.  Selecting
-    directly from ``observations`` therefore gives a complete Ant state
-    (qpos + qvel), rather than merely an XY point on the plotted path.
-    """
+    """Находит первое сохранённое состояние внутри входного радиуса до достижения цели."""
 
     observations = np.asarray(observations)
     goal_xy = np.asarray(goal_xy, dtype=np.float64)
@@ -64,12 +54,7 @@ def find_first_entry_state(
 
 
 def velocity_components(xy, xy_velocity, goal_xy) -> tuple[float, float]:
-    """Return inward radial velocity and unsigned tangential speed.
-
-    Positive radial velocity means movement toward the goal.  This convention
-    makes an orbit easy to recognize: radial velocity is close to zero while
-    tangential speed remains large.
-    """
+    """Разделяет скорость на направление к цели и касательную составляющую."""
 
     xy = np.asarray(xy, dtype=np.float64)
     xy_velocity = np.asarray(xy_velocity, dtype=np.float64)
@@ -86,7 +71,7 @@ def velocity_components(xy, xy_velocity, goal_xy) -> tuple[float, float]:
 
 
 def count_radius_exits(distances, *, radius: float = 1.0) -> int:
-    """Count transitions from inside/on a radius to strictly outside it."""
+    """Считает выходы траектории за пределы заданного радиуса."""
 
     distances = np.asarray(distances, dtype=np.float64)
     if distances.ndim != 1:
@@ -106,12 +91,7 @@ def summarize_branch(
     success_radius: float = 0.5,
     entry_radius: float = 1.0,
 ) -> dict:
-    """Compute the metrics used by the continuation experiment.
-
-    ``positions`` includes the restored initial state and every post-action
-    state.  Velocity and height arrays contain one value for every pre-action
-    state, so their length may be one less when all requested actions ran.
-    """
+    """Вычисляет итоговые метрики одного продолжения возле цели."""
 
     positions = np.asarray(positions, dtype=np.float64)
     goal_xy = np.asarray(goal_xy, dtype=np.float64)
@@ -129,8 +109,8 @@ def summarize_branch(
 
     return {
         "hit_success_radius": bool(hits.size),
-        # State zero is the branch point.  Thus the first post-action state is
-        # step one and the array index is already the desired step number.
+        # Нулевое состояние является точкой ветвления, поэтому первое состояние
+        # после действия имеет номер один, совпадающий с индексом массива.
         "hit_step": int(hits[0]) if hits.size else None,
         "initial_distance": float(distances[0]),
         "minimum_distance": float(distances[closest_index]),

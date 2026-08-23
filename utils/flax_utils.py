@@ -1,3 +1,5 @@
+"""Общие средства Flax для сетей, параметров и оптимизации."""
+
 import functools
 import glob
 import os
@@ -14,23 +16,13 @@ nonpytree_field = functools.partial(flax.struct.field, pytree_node=False)
 
 
 class ModuleDict(nn.Module):
-    """A dictionary of modules.
-
-    This allows sharing parameters between modules and provides a convenient way to access them.
-
-    Attributes:
-        modules: Dictionary of modules.
-    """
+    """Хранит именованные вычислительные модули в общей структуре."""
 
     modules: Dict[str, nn.Module]
 
     @nn.compact
     def __call__(self, *args, name=None, **kwargs):
-        """Forward pass.
-
-        For initialization, call with `name=None` and provide the arguments for each module in `kwargs`.
-        Otherwise, call with `name=<module_name>` and provide the arguments for that module.
-        """
+        """Вычисляет результат модуля для переданных входных данных."""
         if name is None:
             if kwargs.keys() != self.modules.keys():
                 raise ValueError(
@@ -51,16 +43,7 @@ class ModuleDict(nn.Module):
 
 
 class TrainState(flax.struct.PyTreeNode):
-    """Custom train state for models.
-
-    Attributes:
-        step: Counter to keep track of the training steps. It is incremented by 1 after each `apply_gradients` call.
-        apply_fn: Apply function of the model.
-        model_def: Model definition.
-        params: Parameters of the model.
-        tx: optax optimizer.
-        opt_state: Optimizer state.
-    """
+    """Хранит параметры модели, состояние оптимизатора и вычислительные функции."""
 
     step: int
     apply_fn: Any = nonpytree_field()
@@ -71,7 +54,7 @@ class TrainState(flax.struct.PyTreeNode):
 
     @classmethod
     def create(cls, model_def, params, tx=None, **kwargs):
-        """Create a new train state."""
+        """Создаёт экземпляр агента или структуры данных с заданной конфигурацией."""
         if tx is not None:
             opt_state = tx.init(params)
         else:
@@ -88,20 +71,13 @@ class TrainState(flax.struct.PyTreeNode):
         )
 
     def __call__(self, *args, params=None, method=None, **kwargs):
-        """Forward pass.
+        """Вычисляет результат модуля для переданных входных данных.
 
-        When `params` is not provided, it uses the stored parameters.
-
-        The typical use case is to set `params` to `None` when you want to *stop* the gradients, and to pass the current
-        traced parameters when you want to flow the gradients. In other words, the default behavior is to stop the
-        gradients, and you need to explicitly provide the parameters to flow the gradients.
-
-        Args:
-            *args: Arguments to pass to the model.
-            params: Parameters to use for the forward pass. If `None`, it uses the stored parameters, without flowing
-                the gradients.
-            method: Method to call in the model. If `None`, it uses the default `apply` method.
-            **kwargs: Keyword arguments to pass to the model.
+        Параметры:
+            params: параметр исходного вычисления.
+            method: параметр исходного вычисления.
+            *args: дополнительные позиционные аргументы.
+            **kwargs: дополнительные именованные аргументы.
         """
         if params is None:
             params = self.params
@@ -114,11 +90,11 @@ class TrainState(flax.struct.PyTreeNode):
         return self.apply_fn(variables, *args, method=method_name, **kwargs)
 
     def select(self, name):
-        """Helper function to select a module from a `ModuleDict`."""
+        """Выбирает запрошенный вычислительный модуль или лучший допустимый вариант."""
         return functools.partial(self, name=name)
 
     def apply_gradients(self, grads, **kwargs):
-        """Apply the gradients and return the updated state."""
+        """Применяет градиенты и возвращает обновлённое состояние модели."""
         updates, new_opt_state = self.tx.update(grads, self.opt_state, self.params)
         new_params = optax.apply_updates(self.params, updates)
 
@@ -130,10 +106,7 @@ class TrainState(flax.struct.PyTreeNode):
         )
 
     def apply_loss_fn(self, loss_fn):
-        """Apply the loss function and return the updated state and info.
-
-        It additionally computes the gradient statistics and adds them to the dictionary.
-        """
+        """Вычисляет потери, обновляет модель и возвращает диагностические показатели."""
         grads, info = jax.grad(loss_fn, has_aux=True)(self.params)
 
         grad_max = jax.tree_util.tree_map(jnp.max, grads)
@@ -160,12 +133,12 @@ class TrainState(flax.struct.PyTreeNode):
 
 
 def save_agent(agent, save_dir, epoch):
-    """Save the agent to a file.
+    """Сохраняет состояние агента и его параметры в файл.
 
-    Args:
-        agent: Agent.
-        save_dir: Directory to save the agent.
-        epoch: Epoch number.
+    Параметры:
+        agent: параметр исходного вычисления.
+        save_dir: параметр исходного вычисления.
+        epoch: параметр исходного вычисления.
     """
 
     save_dict = dict(
@@ -179,12 +152,12 @@ def save_agent(agent, save_dir, epoch):
 
 
 def restore_agent(agent, restore_path, restore_epoch):
-    """Restore the agent from a file.
+    """Восстанавливает параметры агента из сохранённого файла.
 
-    Args:
-        agent: Agent.
-        restore_path: Path to the directory containing the saved agent.
-        restore_epoch: Epoch number.
+    Параметры:
+        agent: параметр исходного вычисления.
+        restore_path: параметр исходного вычисления.
+        restore_epoch: параметр исходного вычисления.
     """
     candidates = glob.glob(restore_path)
 

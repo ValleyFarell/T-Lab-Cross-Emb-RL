@@ -1,3 +1,5 @@
+"""Отрисовка траекторий на фактической карте лабиринта."""
+
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -5,15 +7,7 @@ import numpy as np
 
 
 def _get_maze_spec(env):
-    """
-    Read the true maze specification from OGBench AntMaze.
-
-    Facts established from the environment:
-    - env.unwrapped.maze_map is an 8x8 discrete occupancy grid
-    - values are {0, 1}
-    - 1 denotes wall, 0 denotes free space
-    - env.unwrapped._maze_unit is the spacing between neighboring free-cell centers
-    """
+    """Получает фактическое описание карты лабиринта из OGBench."""
     u = env.unwrapped
 
     maze_map = np.asarray(u.maze_map)
@@ -30,12 +24,7 @@ def _get_maze_spec(env):
 
 
 def _cell_center_to_world(row, col, maze_shape, maze_unit):
-    """
-    Convert OGBench maze_map indices to MuJoCo world coordinates.
-
-    maze_map row index already follows the same vertical orientation
-    as the rendered world maze.
-    """
+    """Переводит индекс свободной клетки в физические координаты MuJoCo."""
     x_center = (col - 1) * maze_unit
     y_center = (row - 1) * maze_unit
 
@@ -43,9 +32,7 @@ def _cell_center_to_world(row, col, maze_shape, maze_unit):
 
 
 def _wall_rectangle(row, col, maze_shape, maze_unit):
-    """
-    Return the lower-left corner and size of the wall rectangle in world coordinates.
-    """
+    """Возвращает физические координаты и размеры прямоугольника стены."""
     x_center, y_center = _cell_center_to_world(row, col, maze_shape, maze_unit)
     half = maze_unit / 2.0
     return x_center - half, y_center - half, maze_unit, maze_unit
@@ -100,12 +87,7 @@ def plot_path(
     output_file,
     env,
 ):
-    """
-    Draw the Ant trajectory on top of the true maze geometry.
-
-    This function is for visualization only.
-    The maze is NOT passed into the controller/policy.
-    """
+    """Рисует траекторию робота поверх фактической карты лабиринта."""
     output_file = Path(output_file)
 
     positions = np.asarray(positions, dtype=float)

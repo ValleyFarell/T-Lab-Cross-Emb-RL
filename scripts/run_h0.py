@@ -1,8 +1,4 @@
-"""H0 factory and command-line launcher.
-
-The launcher delegates environment/checkpoint/task handling to the shared
-``scripts.run_baseline`` entry point and changes only the selected controller.
-"""
+"""Создание и запуск планировщика H0 с двумя подцелями."""
 
 from __future__ import annotations
 
@@ -45,8 +41,8 @@ def main(argv=None):
             "remove the explicit --controller argument"
         )
 
-    # Imported lazily to avoid a module cycle: run_baseline imports the H0
-    # factory only if H0 is actually selected.
+    # Импортируем фабрику отложенно, чтобы избежать циклической зависимости:
+    # run_baseline загружает H0 только при явном выборе этого метода.
     from scripts.run_baseline import main as run_experiment
 
     return run_experiment(["--controller", "h0", *args])

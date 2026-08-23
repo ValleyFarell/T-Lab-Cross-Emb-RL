@@ -1,0 +1,84 @@
+{
+  "source": "frozen_fb_checkpoint",
+  "environment": "ogbench-antmaze-medium-navigate-v0",
+  "checkpoint": "checkpoints\\antmaze-medium-navigate-v0",
+  "distance_source": "static_maze_map_for_diagnostics_only",
+  "teacher": {
+    "target_mode": "xy-goal",
+    "formula": "mean_e <F_e(s, normalize(B(g))), z_reward> - disagreement_penalty * range_e",
+    "disagreement_penalty": 0.5,
+    "default_two_member_penalty_is_exact_minimum": true,
+    "goal_tolerance": 0.5,
+    "reference_samples": 100000,
+    "reward_temperature": 0.0,
+    "normalize_reward_latent": true,
+    "teacher_batch_size": 128
+  },
+  "goal_banks": {
+    "train": {
+      "count": 374,
+      "support_min": 2,
+      "support_median": 203.5,
+      "support_max": 1896
+    },
+    "validation": {
+      "count": 128,
+      "support_min": 3,
+      "support_median": 226.5,
+      "support_max": 1007
+    },
+    "test": {
+      "count": 128,
+      "support_min": 4,
+      "support_median": 205.0,
+      "support_max": 1477
+    }
+  },
+  "distance_edges": [
+    8.0,
+    16.0,
+    24.0
+  ],
+  "splits": {
+    "split_strategy": "trajectory",
+    "train": {
+      "states": 56000,
+      "trajectories": 700,
+      "pairs": 160000,
+      "unique_starts": 28676,
+      "unique_goals": 374,
+      "distance_bins": {
+        "0": 31334,
+        "1": 40986,
+        "2": 43730,
+        "3": 43950
+      }
+    },
+    "validation": {
+      "states": 12000,
+      "trajectories": 150,
+      "pairs": 32000,
+      "unique_starts": 5837,
+      "unique_goals": 128,
+      "distance_bins": {
+        "0": 6372,
+        "1": 8207,
+        "2": 8720,
+        "3": 8701
+      }
+    },
+    "test": {
+      "states": 12000,
+      "trajectories": 150,
+      "pairs": 32000,
+      "unique_starts": 5822,
+      "unique_goals": 128,
+      "distance_bins": {
+        "0": 6685,
+        "1": 8500,
+        "2": 8567,
+        "3": 8248
+      }
+    }
+  }
+}

@@ -1,3 +1,5 @@
+"""Типы и представление результатов одного проверочного эпизода."""
+
 from dataclasses import dataclass
 from typing import Any
 import numpy as np

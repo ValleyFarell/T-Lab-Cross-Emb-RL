@@ -1,20 +1,4 @@
-"""Branch saved near-goal Ant states under several low-level intentions.
-
-This diagnostic compares, from exactly the same qpos/qvel state:
-
-1. the raw inferred reward/task latent;
-2. the same latent normalized with the checkpoint's official normalize_z;
-3. normalized B(s_goal) latents of real offline states inside the goal region.
-
-Example (PowerShell):
-
-    python -m scripts.diagnose_goal_capture `
-      --source-results results_raw `
-      --goal-xy 4 4 `
-      --goal-state-count 8 `
-      --horizon 100 `
-      --output-dir results_goal_capture
-"""
+"""Продолжения из одинакового физического состояния возле цели."""
 
 from __future__ import annotations
 
@@ -31,8 +15,8 @@ from typing import Any
 import jax
 import numpy as np
 
-# Compatibility with dependency combinations where OGBench still refers to
-# the NumPy alias removed in newer versions.
+# Сохраняем совместимость с версиями OGBench, которые ещё используют
+# устаревшее имя типа, удалённое в новых версиях NumPy.
 np.in1d = np.isin
 
 from baseline.frozen_fb import FrozenFB, load_checkpoint_config
@@ -59,42 +43,44 @@ class SourceRun:
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Test local goal capture from saved full Ant observations."
+        description='Продолжения из одинакового физического состояния возле цели.'
     )
     parser.add_argument(
         "--checkpoint",
         type=Path,
         default=Path("checkpoints/antmaze-medium-navigate-v0"),
+    help='Каталог замороженного агента с params.pkl и flags.json.',
     )
     parser.add_argument(
         "--source-results",
         type=Path,
         required=True,
-        help="Directory containing saved trajectory.npz files (searched recursively).",
+        help='Каталог сохранённых trajectory.npz; поиск выполняется во вложенных папках.',
     )
-    parser.add_argument("--goal-xy", type=float, nargs=2, required=True)
+    parser.add_argument("--goal-xy", type=float, nargs=2, required=True, help='Центр свободной клетки, являющейся целью собственного сценария.')
     parser.add_argument(
         "--task-id",
         type=int,
         default=1,
-        help="Only initializes OGBench before the saved qpos/qvel is restored.",
+        help='Номер официальной задачи OGBench.',
     )
-    parser.add_argument("--entry-radius", type=float, default=1.0)
-    parser.add_argument("--success-radius", type=float, default=0.5)
-    parser.add_argument("--horizon", type=int, default=100)
-    parser.add_argument("--goal-state-count", type=int, default=8)
-    parser.add_argument("--goal-state-seed", type=int, default=0)
-    parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument("--entry-radius", type=float, default=1.0, help='Радиус, в котором выбирается начальное состояние продолжения.')
+    parser.add_argument("--success-radius", type=float, default=0.5, help='Радиус, считающийся успешным достижением цели.')
+    parser.add_argument("--horizon", type=int, default=100, help='Максимальное число шагов каждого продолжения.')
+    parser.add_argument("--goal-state-count", type=int, default=8, help='Число разных реальных состояний в окрестности цели.')
+    parser.add_argument("--goal-state-seed", type=int, default=0, help='Случайная инициализация выбора этих целевых состояний.')
+    parser.add_argument("--temperature", type=float, default=0.0, help='Случайность выбора действий; ноль означает детерминированный режим.')
     parser.add_argument(
         "--max-source-runs",
         type=int,
         default=None,
-        help="Optional cap after deterministic run-path sorting.",
+        help='Максимальное число исходных эпизодов после детерминированной сортировки.',
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
         default=Path("results_goal_capture"),
+    help='Каталог сохранения моделей, оценок и промежуточных данных.',
     )
     return parser.parse_args()
 
@@ -119,7 +105,7 @@ def _safe_run_id(path: Path, root: Path) -> str:
 
 
 def load_source_runs(args) -> tuple[list[SourceRun], list[dict]]:
-    """Load one first-entry state from every usable saved trajectory."""
+    """Извлекает по одному подходящему состоянию из сохранённых траекторий."""
 
     sources: list[SourceRun] = []
     skipped: list[dict] = []
@@ -237,7 +223,7 @@ def infer_custom_task_latent(
     goal_xy,
     success_radius,
 ):
-    """Reproduce zero-shot inference after relabeling for a custom XY goal."""
+    """Строит представление пользовательской цели после переоценки офлайн-награды."""
 
     goal_xy = np.asarray(goal_xy, dtype=np.float64)
     qpos = np.asarray(zero_shot_dataset["qpos"])
@@ -282,7 +268,7 @@ def make_intentions(
     count,
     seed,
 ):
-    """Create named intention vectors and provenance records."""
+    """Формирует именованные намерения и сохраняет сведения об их происхождении."""
 
     if count < 1:
         raise ValueError("goal-state-count must be at least one")
@@ -362,8 +348,8 @@ def _current_observation(env) -> np.ndarray:
 def _set_custom_goal(env, goal_xy) -> None:
     base = env.unwrapped
     goal_xy = np.asarray(goal_xy, dtype=np.float64).copy()
-    # OGBench reads cur_goal_xy for success/termination.  Slice assignment is
-    # preferable when the environment keeps other references to this array.
+    # OGBench проверяет достижение цели через cur_goal_xy; изменение среза
+    # сохраняет другие существующие ссылки среды на тот же массив.
     try:
         base.cur_goal_xy[...] = goal_xy
     except (AttributeError, TypeError, ValueError):
@@ -371,7 +357,7 @@ def _set_custom_goal(env, goal_xy) -> None:
 
 
 def restore_saved_ant_state(env, source: SourceRun, goal_xy) -> np.ndarray:
-    """Reset wrappers, then replace physics with the saved qpos/qvel exactly."""
+    """Точно восстанавливает физические координаты и скорости сохранённого робота."""
 
     random.seed(source.environment_seed)
     np.random.seed(source.environment_seed)
@@ -430,8 +416,8 @@ def run_branch(env, frozen_fb, source, condition, args):
         tangential_speeds.append(tangential)
         torso_heights.append(float(env.unwrapped.data.qpos[2]))
 
-        # Reproduce the low-key stream used by EpisodeRunner.  Every condition
-        # receives the same stream for this source state.
+        # Воспроизводим поток ключей низкоуровневой политики EpisodeRunner;
+        # каждый вариант получает одинаковую последовательность для исходного состояния.
         policy_rng, step_key = jax.random.split(policy_rng)
         _, low_key = jax.random.split(step_key)
         action = np.asarray(
@@ -478,7 +464,7 @@ def run_branch(env, frozen_fb, source, condition, args):
         }
     )
     arrays = {
-        # Includes the final next_observation, unlike the old episode logger.
+        # Добавляем итоговое следующее наблюдение, отсутствовавшее в старом журнале.
         "observations": np.asarray(observations),
         "positions": np.asarray(positions),
         "actions": np.asarray(actions),
@@ -509,7 +495,7 @@ def write_csv(path: Path, rows: list[dict]) -> None:
 
 
 def aggregate(rows: list[dict]) -> list[dict]:
-    """Aggregate variants separately and all B(s_goal) variants as a family."""
+    """Объединяет показатели отдельных вариантов и семейства целевых состояний."""
 
     groups: dict[tuple[str, str], list[dict]] = {}
     for row in rows:
